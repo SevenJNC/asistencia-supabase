@@ -633,34 +633,65 @@
             }
 
             const workerForm = document.getElementById('worker-form');
-                if(workerForm) {
-                workerForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const name = document.getElementById('new-worker-name').value;
-            const cargo = document.getElementById('new-worker-cargo').value;
-            const base = parseFloat(document.getElementById('new-worker-base').value) || 1600;
-            const entry = document.getElementById('new-worker-entry').value;
+if(workerForm) {
+    workerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('new-worker-name').value;
+        const cargo = document.getElementById('new-worker-cargo').value;
+        const base = parseFloat(document.getElementById('new-worker-base').value) || 1600;
+        const entry = document.getElementById('new-worker-entry').value;
 
-            const newId = workers.length > 0 ? Math.max(...workers.map(w => w.id)) + 1 : 1;
+        const newId = workers.length > 0 ? Math.max(...workers.map(w => w.id)) + 1 : 1;
         
-            const newWorker = {
-                id: newId, name, cargo, base, entry, tolerance: 10, out: "17:00",
-                inTime: entry, outTime: "17:00", status: "A Tiempo", bonus: 100,
-                overtimeHours: 0, advanceAmount: 0, scheduleLV: "08:00 - 17:00",
-                scheduleSD: "08:00 - 13:00", restDay: "Domingo", medicalRest: "No"
-            };
+        const newWorker = {
+            id: newId, 
+            name: name, 
+            cargo: cargo, 
+            base: base, 
+            entry: entry, 
+            tolerance: 10, 
+            status: "A Tiempo", 
+            bonus: 100,
+            overtimeHours: 0, 
+            advanceAmount: 0, 
+            scheduleLV: "08:00 - 17:00",
+            scheduleSD: "08:00 - 13:00", 
+            restDay: "Domingo", 
+            medicalRest: "No"
+        };
 
-            workers.push(newWorker);
+        // 1. Guardar localmente en el arreglo
+        workers.push(newWorker);
         
-            // CONEXIÓN A LA NUBE: Guardar en Supabase
-            await guardarTrabajadorNube(newWorker);
+        // 2. ENVIAR A SUPABASE (Esta era la línea faltante)
+        if (supabaseClient) {
+            const { error } = await supabaseClient.from('workers').insert([{
+                id: newWorker.id,
+                name: newWorker.name,
+                cargo: newWorker.cargo,
+                base: newWorker.base,
+                entry: newWorker.entry,
+                tolerance: newWorker.tolerance,
+                status: newWorker.status,
+                bonus: newWorker.bonus,
+                overtime_hours: newWorker.overtimeHours,
+                advance_amount: newWorker.advanceAmount,
+                schedule_lv: newWorker.scheduleLV,
+                schedule_sd: newWorker.scheduleSD,
+                rest_day: newWorker.restDay,
+                medical_rest: newWorker.medicalRest
+            }]);
 
-            renderAll();
-            closeWorkerModal();
-            workerForm.reset();
-            showNotification(`Empleado ${name} registrado exitosamente en la nube`, 'success');
-            });
+            if (error) {
+                console.error("Error al guardar en Supabase:", error);
+            }
         }
+
+        renderAll();
+        closeWorkerModal();
+        workerForm.reset();
+    });
+}
 
             const otForm = document.getElementById('overtime-form');
             if(otForm) {
