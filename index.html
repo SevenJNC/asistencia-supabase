@@ -53,43 +53,37 @@
 </head>
 <body class="bg-black text-white min-h-screen flex flex-col antialiased selection:bg-red-600 selection:text-white">
 
-    <!-- LOGIN SCREEN -->
-    <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-cover bg-center" style="background-image: url('fondo.png');">
-        <div class="absolute inset-0 bg-black/85 backdrop-blur-md"></div>
-        
-        <div class="bg-zinc-900/90 border border-zinc-800 p-8 rounded-3xl w-full max-w-md shadow-2xl relative overflow-hidden group backdrop-blur-xl">
-            <div class="absolute -right-16 -top-16 w-48 h-48 bg-red-600/10 rounded-full blur-3xl pointer-events-none"></div>
-            
-            <div class="text-center space-y-3 mb-8">
-                <div class="w-20 h-20 bg-black text-white rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-red-600/40 border-2 border-red-600 overflow-hidden">
-                    <img src="logo.png" alt="Logo Rojinegro" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='https://placehold.co/100x100/111/ef4444?text=SR';">
-                </div>
-                <h1 class="text-2xl font-bold tracking-tight text-white">Control de Asistencia</h1>
-                <p class="text-xs text-zinc-400">Edición Enterprise con Módulos Avanzados</p>
+    <!-- LOGIN SCREEN CON SUPABASE AUTH -->
+<div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-cover bg-center" style="background-image: url('fondo.png');">
+    <div class="absolute inset-0 bg-black/85 backdrop-blur-md"></div>
+    
+    <div class="bg-zinc-900/90 border border-zinc-800 p-8 rounded-3xl w-full max-w-md shadow-2xl relative overflow-hidden backdrop-blur-xl">
+        <div class="text-center space-y-3 mb-8">
+            <div class="w-20 h-20 bg-black text-white rounded-2xl mx-auto flex items-center justify-center border-2 border-red-600 overflow-hidden">
+                <img src="logo.png" alt="Logo Rojinegro" class="w-full h-full object-cover">
+            </div>
+            <h1 class="text-2xl font-bold text-white">Control de Asistencia</h1>
+            <p class="text-xs text-zinc-400">Acceso Seguro Autorizado</p>
+        </div>
+
+        <form id="login-form" class="space-y-5">
+            <div>
+                <label class="block text-xs font-medium text-zinc-300 mb-2">Correo Electrónico Autorizado</label>
+                <input type="email" id="admin-email" placeholder="encargada@villanos.com" required class="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-red-600 transition">
             </div>
 
-            <form id="login-form" class="space-y-5">
-                <div>
-                    <label class="block text-xs font-medium text-zinc-300 mb-2">Supervisor Responsable</label>
-                    <div class="w-full bg-black/60 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-zinc-300 flex items-center justify-between">
-                        <span>Steishi</span>
-                        <span class="text-xs text-red-500 font-semibold">Supervisor General</span>
-                    </div>
-                </div>
+            <div>
+                <label class="block text-xs font-medium text-zinc-300 mb-2">Contraseña</label>
+                <input type="password" id="admin-password" placeholder="••••••••" required class="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-red-600 transition">
+            </div>
 
-                <div>
-                    <label class="block text-xs font-medium text-zinc-300 mb-2">Contraseña de Acceso</label>
-                    <input type="password" id="admin-password" placeholder="••••••••" value="admin123" required class="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-red-600 transition">
-                    <p class="text-[10px] text-zinc-500 mt-1">Sugerencia: Cualquier contraseña (ej. admin123)</p>
-                </div>
-
-                <button type="submit" class="w-full py-3.5 bg-red-600 hover:bg-red-700 active:scale-[0.98] text-white font-semibold rounded-xl shadow-lg shadow-red-600/30 transition flex items-center justify-center space-x-2">
-                    <span>Acceder al Panel Avanzado</span>
-                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                </button>
-            </form>
-        </div>
+            <button type="submit" class="w-full py-3.5 bg-red-600 hover:bg-red-700 active:scale-[0.98] text-white font-semibold rounded-xl shadow-lg shadow-red-600/30 transition flex items-center justify-center space-x-2">
+                <span>Acceder al Sistema</span>
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </button>
+        </form>
     </div>
+</div>
 
     <!-- MAIN APP CONTAINER -->
     <div id="app-container" class="flex-1 flex flex-col hidden">
@@ -583,30 +577,46 @@
             cargarDatosNube();
         });
 
-        function setupLogin() {
+            function setupLogin() {
             const loginForm = document.getElementById('login-form');
 
             if(loginForm) {
-                loginForm.addEventListener('submit', (e) => {
-                    e.preventDefault();
-                    document.getElementById('login-screen').classList.add('hidden');
-                    document.getElementById('app-container').classList.remove('hidden');
-                    document.getElementById('admin-logged-info').textContent = `Sesión activa: ${currentAdmin.name} (${currentAdmin.role})`;
-                    showNotification(`¡Bienvenido al sistema, ${currentAdmin.name}!`, 'success');
-                    initCanvas();
-                    initCharts();
-                });
+            loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('admin-email').value;
+            const password = document.getElementById('admin-password').value;
+
+            // Intentar iniciar sesión con Supabase Auth
+            const { data, error } = await supabaseClient.auth.signInWithPassword({
+                email: email,
+                password: password
+            });
+
+            if (error) {
+                showNotification('Credenciales incorrectas o acceso no autorizado', 'error');
+                return;
             }
+
+            // Si el login es exitoso
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('app-container').classList.remove('hidden');
+            document.getElementById('admin-logged-info').textContent = `Sesión activa: ${data.user.email}`;
+            showNotification(`¡Bienvenida al sistema, Encargada!`, 'success');
+            initCanvas();
+            initCharts();
+            });
+        }
 
             const logoutBtn = document.getElementById('logout-btn');
             if(logoutBtn) {
-                logoutBtn.addEventListener('click', () => {
-                    document.getElementById('login-screen').classList.remove('hidden');
-                    document.getElementById('app-container').classList.add('hidden');
-                    showNotification('Sesión cerrada correctamente', 'info');
-                });
+            logoutBtn.addEventListener('click', async () => {
+            await supabaseClient.auth.signOut();
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('app-container').classList.add('hidden');
+            showNotification('Sesión cerrada correctamente', 'info');
+            });
             }
-
+        }
             const btnExcel = document.getElementById('btn-export-excel');
             if(btnExcel) btnExcel.addEventListener('click', exportToExcel);
 
@@ -713,7 +723,6 @@ if(workerForm) {
                     }
                 });
             }
-        }
 
         function switchTab(tabName) {
             document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
