@@ -73,7 +73,13 @@
             </div>
 
             <div>
-                <label class="block text-xs font-medium text-zinc-300 mb-2">Contraseña</label>
+                <div class="flex justify-between items-center mb-2">
+                    <label class="block text-xs font-medium text-zinc-300">Contraseña</label>
+                    <!-- NUEVO: Botón para solicitar recuperación -->
+                    <button type="button" id="forgot-password-btn" class="text-xs text-red-500 hover:text-red-400 transition underline">
+                        ¿Olvidaste tu contraseña?
+                    </button>
+                </div>
                 <input type="password" id="admin-password" placeholder="••••••••" required class="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-red-600 transition">
             </div>
 
@@ -577,44 +583,67 @@
             cargarDatosNube();
         });
 
-            function setupLogin() {
+        function setupLogin() {
             const loginForm = document.getElementById('login-form');
 
             if(loginForm) {
-            loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('admin-email').value;
-            const password = document.getElementById('admin-password').value;
+                loginForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const email = document.getElementById('admin-email').value;
+                    const password = document.getElementById('admin-password').value;
 
-            // Intentar iniciar sesión con Supabase Auth
-            const { data, error } = await supabaseClient.auth.signInWithPassword({
-                email: email,
-                password: password
-            });
+                    // Intentar iniciar sesión con Supabase Auth
+                    const { data, error } = await supabaseClient.auth.signInWithPassword({
+                        email: email,
+                        password: password
+                    });
 
-            if (error) {
-                showNotification('Credenciales incorrectas o acceso no autorizado', 'error');
-                return;
+                    if (error) {
+                        showNotification('Credenciales incorrectas o acceso no autorizado', 'error');
+                        return;
+                    }
+
+                    // Si el login es exitoso
+                    document.getElementById('login-screen').classList.add('hidden');
+                    document.getElementById('app-container').classList.remove('hidden');
+                    document.getElementById('admin-logged-info').textContent = `Sesión activa: ${data.user.email}`;
+                    showNotification(`¡Bienvenida al sistema, Encargada!`, 'success');
+                    initCanvas();
+                    initCharts();
+                });
             }
-
-            // Si el login es exitoso
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('app-container').classList.remove('hidden');
-            document.getElementById('admin-logged-info').textContent = `Sesión activa: ${data.user.email}`;
-            showNotification(`¡Bienvenida al sistema, Encargada!`, 'success');
-            initCanvas();
-            initCharts();
-            });
-        }
 
             const logoutBtn = document.getElementById('logout-btn');
             if(logoutBtn) {
-            logoutBtn.addEventListener('click', async () => {
-            await supabaseClient.auth.signOut();
-            document.getElementById('login-screen').classList.remove('hidden');
-            document.getElementById('app-container').classList.add('hidden');
-            showNotification('Sesión cerrada correctamente', 'info');
-            });
+                logoutBtn.addEventListener('click', async () => {
+                    await supabaseClient.auth.signOut();
+                    document.getElementById('login-screen').classList.remove('hidden');
+                    document.getElementById('app-container').classList.add('hidden');
+                    showNotification('Sesión cerrada correctamente', 'info');
+                });
+            }
+
+            // NUEVO: Lógica para enviar el correo de recuperación
+            const forgotPasswordBtn = document.getElementById('forgot-password-btn');
+            if(forgotPasswordBtn) {
+                forgotPasswordBtn.addEventListener('click', async () => {
+                    const email = document.getElementById('admin-email').value;
+
+                    if (!email) {
+                        showNotification('Por favor, ingresa tu correo electrónico en el campo superior primero.', 'info');
+                        return;
+                    }
+
+                    const { data, error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+                        redirectTo: window.location.origin,
+                    });
+
+                    if (error) {
+                        showNotification(`Error: ${error.message}`, 'error');
+                    } else {
+                        showNotification('Se ha enviado un correo con las instrucciones para restablecer tu contraseña.', 'success');
+                    }
+                });
             }
         }
             const btnExcel = document.getElementById('btn-export-excel');
