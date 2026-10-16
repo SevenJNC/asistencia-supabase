@@ -6,7 +6,7 @@
     <title>Control de Asistencia - Panel de Monitoreo Avanzado</title>
     <!-- Favicon personalizado -->
     <link rel="icon" type="image/png" href="logo.png">
-    <!--Base de datos-->
+    <!-- Base de datos -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -34,6 +34,11 @@
                             800: '#991b1b',
                             900: '#7f1d1d',
                             950: '#450a0a',
+                        },
+                        gold: {
+                            400: '#facc15',
+                            500: '#eab308',
+                            600: '#ca8a04',
                         }
                     },
                     fontFamily: {
@@ -49,357 +54,399 @@
         ::-webkit-scrollbar-track { background: #09090b; }
         ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #dc2626; }
+        
+        /* Efecto de resplandor dorado para las pestañas y barra */
+        .gold-glow-tab {
+            transition: all 0.3s ease;
+            color: #d4d4d8;
+        }
+        .gold-glow-tab:hover {
+            border-color: #eab308 !important;
+            color: #ffffff !important;
+            box-shadow: 0 0 18px rgba(234, 179, 8, 0.4);
+        }
+        .gold-glow-active {
+            border-color: #eab308 !important;
+            color: #ffffff !important;
+            box-shadow: 0 0 20px rgba(234, 179, 8, 0.45);
+        }
     </style>
 </head>
 <body class="bg-black text-white min-h-screen flex flex-col antialiased selection:bg-red-600 selection:text-white">
 
     <!-- LOGIN SCREEN CON SUPABASE AUTH -->
-<div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-cover bg-center" style="background-image: url('fondo.png');">
-    <div class="absolute inset-0 bg-black/85 backdrop-blur-md"></div>
-    
-    <div class="bg-zinc-900/90 border border-zinc-800 p-8 rounded-3xl w-full max-w-md shadow-2xl relative overflow-hidden backdrop-blur-xl">
-        <div class="text-center space-y-3 mb-8">
-            <div class="w-20 h-20 bg-black text-white rounded-2xl mx-auto flex items-center justify-center border-2 border-red-600 overflow-hidden">
-                <img src="logo.png" alt="Logo Rojinegro" class="w-full h-full object-cover">
-            </div>
-            <h1 class="text-2xl font-bold text-white">Control de Asistencia</h1>
-            <p class="text-xs text-zinc-400">Acceso Seguro Autorizado</p>
-        </div>
-
-        <form id="login-form" class="space-y-5">
-            <div>
-                <label class="block text-xs font-medium text-zinc-300 mb-2">Correo Electrónico Autorizado</label>
-                <input type="email" id="admin-email" placeholder="encargada@villanos.com" required class="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-red-600 transition">
-            </div>
-
-            <div>
-                <div class="flex justify-between items-center mb-2">
-                    <label class="block text-xs font-medium text-zinc-300">Contraseña</label>
-                    <!-- NUEVO: Botón para solicitar recuperación -->
-                    <button type="button" id="forgot-password-btn" class="text-xs text-red-500 hover:text-red-400 transition underline">
-                        ¿Olvidaste tu contraseña?
-                    </button>
-                </div>
-                <input type="password" id="admin-password" placeholder="••••••••" required class="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-red-600 transition">
-            </div>
-
-            <button type="submit" class="w-full py-3.5 bg-red-600 hover:bg-red-700 active:scale-[0.98] text-white font-semibold rounded-xl shadow-lg shadow-red-600/30 transition flex items-center justify-center space-x-2">
-                <span>Acceder al Sistema</span>
-                <i data-lucide="arrow-right" class="w-4 h-4"></i>
-            </button>
-        </form>
-    </div>
-</div>
-
-    <!-- MAIN APP CONTAINER -->
-    <div id="app-container" class="flex-1 flex flex-col hidden">
+    <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-cover bg-center" style="background-image: url('fondo.png');">
+        <div class="absolute inset-0 bg-black/85 backdrop-blur-md"></div>
         
-        <!-- HEADER -->
-        <header class="bg-zinc-900 border-b border-zinc-800 px-6 py-4 flex items-center justify-between sticky top-0 z-30">
-            <div class="flex items-center space-x-4">
-                <div class="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center shadow-md shadow-red-600/30 border border-red-600 overflow-hidden">
-                    <img src="logo.png" alt="Logo" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='https://placehold.co/40x40/111/ef4444?text=SR';">
+        <div class="bg-zinc-900/90 border border-zinc-800 p-8 rounded-3xl w-full max-w-md shadow-2xl relative overflow-hidden backdrop-blur-xl">
+            <div class="text-center space-y-3 mb-8">
+                <div class="w-20 h-20 bg-black text-white rounded-2xl mx-auto flex items-center justify-center border-2 border-red-600 overflow-hidden shadow-lg shadow-red-600/30">
+                    <img src="logo.png" alt="Logo Rojinegro" class="w-full h-full object-cover">
                 </div>
+                <h1 class="text-2xl font-bold text-white">Control de Asistencia</h1>
+                <p class="text-xs text-zinc-400">Acceso Seguro Autorizado</p>
+            </div>
+
+            <form id="login-form" class="space-y-5">
                 <div>
-                    <h2 class="font-bold text-white text-base leading-tight">Control Quincenal, Asistencias & Biometría</h2>
-                    <p class="text-xs text-zinc-400" id="admin-logged-info">Sesión activa: Supervisor General</p>
+                    <label class="block text-xs font-medium text-zinc-300 mb-2">Correo Electrónico Autorizado</label>
+                    <input type="email" id="admin-email" placeholder="encargada@villanos.com" required class="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-red-600 transition">
                 </div>
-            </div>
 
-            <div class="flex items-center space-x-3">
-                <button onclick="openScannerModal()" class="px-3.5 py-2 bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white text-xs font-semibold rounded-xl transition border border-red-900 flex items-center space-x-2">
-                    <i data-lucide="qr-code" class="w-4 h-4"></i>
-                    <span>Simular Escáner QR</span>
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-xs font-medium text-zinc-300">Contraseña</label>
+                        <button type="button" id="forgot-password-btn" class="text-xs text-red-500 hover:text-red-400 transition underline">
+                            ¿Olvidaste tu contraseña?
+                        </button>
+                    </div>
+                    <input type="password" id="admin-password" placeholder="••••••••" required class="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-red-600 transition">
+                </div>
+
+                <button type="submit" class="w-full py-3.5 bg-red-600 hover:bg-red-700 active:scale-[0.98] text-white font-semibold rounded-xl shadow-lg shadow-red-600/30 transition flex items-center justify-center space-x-2">
+                    <span>Acceder al Sistema</span>
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
                 </button>
-                <button id="btn-export-excel" class="px-3.5 py-2 bg-zinc-800 hover:bg-zinc-700 active:scale-95 text-white text-xs font-semibold rounded-xl transition border border-zinc-700 flex items-center space-x-2">
-                    <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-400"></i>
-                    <span>Excel</span>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN APP CONTAINER CON FONDO2.JPG -->
+    <div id="app-container" class="flex-1 flex flex-col hidden relative bg-cover bg-center bg-fixed" style="background-image: url('fondo2.jpg');">
+        <!-- Overlay oscuro para legibilidad -->
+        <div class="absolute inset-0 bg-black/85 backdrop-blur-sm z-0"></div>
+
+        <div class="relative z-10 flex-1 flex flex-col">
+            <!-- HEADER -->
+            <header class="bg-zinc-900/90 border-b border-zinc-800 px-6 py-4 flex items-center justify-between sticky top-0 z-30 backdrop-blur-md">
+                <div class="flex items-center space-x-4">
+                    <div class="w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center shadow-md shadow-red-600/30 border border-red-600 overflow-hidden">
+                        <img src="logo.png" alt="Logo" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='https://placehold.co/40x40/111/ef4444?text=SR';">
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <h2 class="font-bold text-white text-base leading-tight">Control Quincenal, Asistencias & Biometría</h2>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span>
+                                En Línea
+                            </span>
+                        </div>
+                        <p class="text-xs text-zinc-400" id="admin-logged-info">Sesión activa: Supervisor General</p>
+                    </div>
+                </div>
+
+                <!-- RELOJ EN VIVO + ACCIONES -->
+                <div class="flex items-center space-x-4">
+                    <div class="hidden lg:flex items-center space-x-2 bg-black/60 border border-gold-500/30 px-3.5 py-1.5 rounded-xl text-xs font-mono text-gold-400 shadow-[0_0_10px_rgba(234,179,8,0.15)]">
+                        <i data-lucide="clock" class="w-3.5 h-3.5 text-gold-500"></i>
+                        <span id="realtime-clock">--:--:--</span>
+                    </div>
+
+                    <div class="flex items-center space-x-2">
+                        <button onclick="openScannerModal()" class="px-3.5 py-2 bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white text-xs font-semibold rounded-xl transition border border-red-900/80 flex items-center space-x-2">
+                            <i data-lucide="qr-code" class="w-4 h-4"></i>
+                            <span>Simular Escáner QR</span>
+                        </button>
+                        <button id="btn-export-excel" class="px-3.5 py-2 bg-zinc-800/80 hover:bg-zinc-700 active:scale-95 text-white text-xs font-semibold rounded-xl transition border border-zinc-700 flex items-center space-x-2">
+                            <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-400"></i>
+                            <span>Excel</span>
+                        </button>
+                        <button id="btn-export-pdf" class="px-3.5 py-2 bg-zinc-800/80 hover:bg-zinc-700 active:scale-95 text-white text-xs font-semibold rounded-xl transition border border-zinc-700 flex items-center space-x-2">
+                            <i data-lucide="file-text" class="w-4 h-4 text-red-500"></i>
+                            <span>PDF</span>
+                        </button>
+                        <button id="logout-btn" class="p-2 bg-zinc-800/80 hover:bg-red-950 text-zinc-400 hover:text-red-400 rounded-xl transition border border-zinc-700" title="Cerrar Sesión">
+                            <i data-lucide="log-out" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- NAVIGATION TABS CON TONOS DORADOS Y EFECTO GLOW -->
+            <nav class="bg-zinc-950/90 border-b border-gold-500/30 px-6 flex space-x-2 overflow-x-auto shadow-[0_4px_20px_rgba(234,179,8,0.1)]">
+                <button onclick="switchTab('dashboard')" class="tab-btn gold-glow-tab gold-glow-active py-3.5 px-4 text-xs font-semibold border-b-2 border-gold-500 text-white flex items-center space-x-2 transition rounded-t-xl" data-tab="dashboard">
+                    <i data-lucide="layout-dashboard" class="w-4 h-4 text-gold-400"></i>
+                    <span>Monitoreo en Vivo</span>
                 </button>
-                <button id="btn-export-pdf" class="px-3.5 py-2 bg-zinc-800 hover:bg-zinc-700 active:scale-95 text-white text-xs font-semibold rounded-xl transition border border-zinc-700 flex items-center space-x-2">
-                    <i data-lucide="file-text" class="w-4 h-4 text-red-500"></i>
-                    <span>PDF</span>
+                <button onclick="switchTab('analytics')" class="tab-btn gold-glow-tab py-3.5 px-4 text-xs font-semibold border-b-2 border-transparent flex items-center space-x-2 transition rounded-t-xl" data-tab="analytics">
+                    <i data-lucide="bar-chart-3" class="w-4 h-4 text-gold-400"></i>
+                    <span>Analíticas & Gráficos</span>
                 </button>
-                <button id="logout-btn" class="p-2 bg-zinc-800 hover:bg-red-950 text-zinc-400 hover:text-red-400 rounded-xl transition border border-zinc-700" title="Cerrar Sesión">
-                    <i data-lucide="log-out" class="w-4 h-4"></i>
+                <button onclick="switchTab('canvas')" class="tab-btn gold-glow-tab py-3.5 px-4 text-xs font-semibold border-b-2 border-transparent flex items-center space-x-2 transition rounded-t-xl" data-tab="canvas">
+                    <i data-lucide="monitor" class="w-4 h-4 text-gold-400"></i>
+                    <span>Vista Canvas</span>
                 </button>
-            </div>
-        </header>
+                <button onclick="switchTab('workers')" class="tab-btn gold-glow-tab py-3.5 px-4 text-xs font-semibold border-b-2 border-transparent flex items-center space-x-2 transition rounded-t-xl" data-tab="workers">
+                    <i data-lucide="users" class="w-4 h-4 text-gold-400"></i>
+                    <span>Trabajadores</span>
+                </button>
+                <button onclick="switchTab('schedule')" class="tab-btn gold-glow-tab py-3.5 px-4 text-xs font-semibold border-b-2 border-transparent flex items-center space-x-2 transition rounded-t-xl" data-tab="schedule">
+                    <i data-lucide="calendar" class="w-4 h-4 text-gold-400"></i>
+                    <span>Horarios (L-D)</span>
+                </button>
+                <button onclick="switchTab('overtime')" class="tab-btn gold-glow-tab py-3.5 px-4 text-xs font-semibold border-b-2 border-transparent flex items-center space-x-2 transition rounded-t-xl" data-tab="overtime">
+                    <i data-lucide="clock" class="w-4 h-4 text-gold-400"></i>
+                    <span>Horas Extra y Adelantos</span>
+                </button>
+                <button onclick="switchTab('payroll')" class="tab-btn gold-glow-tab py-3.5 px-4 text-xs font-semibold border-b-2 border-transparent flex items-center space-x-2 transition rounded-t-xl" data-tab="payroll">
+                    <i data-lucide="wallet" class="w-4 h-4 text-gold-400"></i>
+                    <span>Planilla Quincenal</span>
+                </button>
+            </nav>
 
-        <!-- NAVIGATION TABS -->
-        <nav class="bg-zinc-950 border-b border-zinc-800 px-6 flex space-x-6 overflow-x-auto">
-            <button onclick="switchTab('dashboard')" class="tab-btn py-4 text-xs font-semibold border-b-2 border-red-600 text-white flex items-center space-x-2 transition" data-tab="dashboard">
-                <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
-                <span>Monitoreo en Vivo</span>
-            </button>
-            <button onclick="switchTab('analytics')" class="tab-btn py-4 text-xs font-semibold border-b-2 border-transparent text-zinc-400 hover:text-white flex items-center space-x-2 transition" data-tab="analytics">
-                <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
-                <span>Analíticas & Gráficos</span>
-            </button>
-            <button onclick="switchTab('canvas')" class="tab-btn py-4 text-xs font-semibold border-b-2 border-transparent text-zinc-400 hover:text-white flex items-center space-x-2 transition" data-tab="canvas">
-                <i data-lucide="monitor" class="w-4 h-4"></i>
-                <span>Vista Canvas</span>
-            </button>
-            <button onclick="switchTab('workers')" class="tab-btn py-4 text-xs font-semibold border-b-2 border-transparent text-zinc-400 hover:text-white flex items-center space-x-2 transition" data-tab="workers">
-                <i data-lucide="users" class="w-4 h-4"></i>
-                <span>Trabajadores</span>
-            </button>
-            <button onclick="switchTab('schedule')" class="tab-btn py-4 text-xs font-semibold border-b-2 border-transparent text-zinc-400 hover:text-white flex items-center space-x-2 transition" data-tab="schedule">
-                <i data-lucide="calendar" class="w-4 h-4"></i>
-                <span>Horarios (L-D)</span>
-            </button>
-            <button onclick="switchTab('overtime')" class="tab-btn py-4 text-xs font-semibold border-b-2 border-transparent text-zinc-400 hover:text-white flex items-center space-x-2 transition" data-tab="overtime">
-                <i data-lucide="clock" class="w-4 h-4"></i>
-                <span>Horas Extra y Adelantos</span>
-            </button>
-            <button onclick="switchTab('payroll')" class="tab-btn py-4 text-xs font-semibold border-b-2 border-transparent text-zinc-400 hover:text-white flex items-center space-x-2 transition" data-tab="payroll">
-                <i data-lucide="wallet" class="w-4 h-4"></i>
-                <span>Planilla Quincenal</span>
-            </button>
-        </nav>
+            <!-- MAIN CONTENT -->
+            <main class="flex-1 p-6 lg:p-10 max-w-7xl mx-auto w-full space-y-8">
 
-        <!-- MAIN CONTENT -->
-        <main class="flex-1 p-6 lg:p-10 max-w-7xl mx-auto w-full space-y-8">
-
-            <!-- TAB 1: DASHBOARD -->
-            <section id="tab-dashboard" class="space-y-6">
-                <!-- METRICS GRID -->
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div class="bg-zinc-900 border border-zinc-800 p-5 rounded-2xl hover:border-red-600/50 transition shadow-lg">
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="text-xs text-zinc-400 font-medium">Total Personal</span>
-                            <div class="p-2 bg-zinc-800 rounded-xl text-white"><i data-lucide="users" class="w-4 h-4"></i></div>
+                <!-- TAB 1: DASHBOARD -->
+                <section id="tab-dashboard" class="space-y-6">
+                    <!-- METRICS GRID -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="bg-zinc-900/90 border border-zinc-800 p-5 rounded-2xl hover:border-zinc-700 transition shadow-xl relative overflow-hidden group backdrop-blur-md">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-xs text-zinc-400 font-medium">Total Personal</span>
+                                <div class="p-2.5 bg-zinc-800 text-white rounded-xl border border-zinc-700 group-hover:scale-110 transition-transform"><i data-lucide="users" class="w-4 h-4"></i></div>
+                            </div>
+                            <h3 class="text-3xl font-bold text-white tracking-tight" id="stat-total">0</h3>
+                            <p class="text-[11px] text-zinc-500 mt-1 font-medium">Registrados en planilla</p>
                         </div>
-                        <h3 class="text-2xl font-bold text-white" id="stat-total">0</h3>
-                        <p class="text-[10px] text-zinc-500 mt-1">Registrados activos</p>
-                    </div>
 
-                    <div class="bg-zinc-900 border border-zinc-800 p-5 rounded-2xl hover:border-emerald-600/50 transition shadow-lg">
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="text-xs text-zinc-400 font-medium">A Tiempo</span>
-                            <div class="p-2 bg-emerald-950 text-emerald-400 rounded-xl"><i data-lucide="check-circle-2" class="w-4 h-4"></i></div>
+                        <div class="bg-zinc-900/90 border border-zinc-800 p-5 rounded-2xl hover:border-emerald-600/40 transition shadow-xl relative overflow-hidden group backdrop-blur-md">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-xs text-zinc-400 font-medium">A Tiempo</span>
+                                <div class="p-2.5 bg-emerald-950/80 text-emerald-400 rounded-xl border border-emerald-900 group-hover:scale-110 transition-transform"><i data-lucide="check-circle-2" class="w-4 h-4"></i></div>
+                            </div>
+                            <div class="flex items-baseline justify-between">
+                                <h3 class="text-3xl font-bold text-emerald-400 tracking-tight" id="stat-ontime">0</h3>
+                                <span class="text-xs font-semibold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20" id="stat-ontime-pct">0%</span>
+                            </div>
+                            <p class="text-[11px] text-zinc-500 mt-1 font-medium">Asistencia puntual</p>
                         </div>
-                        <h3 class="text-2xl font-bold text-emerald-400" id="stat-ontime">0</h3>
-                        <p class="text-[10px] text-zinc-500 mt-1">Asistencia puntual</p>
-                    </div>
 
-                    <div class="bg-zinc-900 border border-zinc-800 p-5 rounded-2xl hover:border-amber-600/50 transition shadow-lg">
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="text-xs text-zinc-400 font-medium">Tardanzas</span>
-                            <div class="p-2 bg-amber-950 text-amber-400 rounded-xl"><i data-lucide="clock" class="w-4 h-4"></i></div>
+                        <div class="bg-zinc-900/90 border border-zinc-800 p-5 rounded-2xl hover:border-amber-600/40 transition shadow-xl relative overflow-hidden group backdrop-blur-md">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-xs text-zinc-400 font-medium">Tardanzas</span>
+                                <div class="p-2.5 bg-amber-950/80 text-amber-400 rounded-xl border border-amber-900 group-hover:scale-110 transition-transform"><i data-lucide="clock" class="w-4 h-4"></i></div>
+                            </div>
+                            <div class="flex items-baseline justify-between">
+                                <h3 class="text-3xl font-bold text-amber-400 tracking-tight" id="stat-late">0</h3>
+                                <span class="text-xs font-semibold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20" id="stat-late-pct">0%</span>
+                            </div>
+                            <p class="text-[11px] text-zinc-500 mt-1 font-medium">Minutos de retraso</p>
                         </div>
-                        <h3 class="text-2xl font-bold text-amber-400" id="stat-late">0</h3>
-                        <p class="text-[10px] text-zinc-500 mt-1">Con minutos de retraso</p>
-                    </div>
 
-                    <div class="bg-zinc-900 border border-zinc-800 p-5 rounded-2xl hover:border-red-600/50 transition shadow-lg">
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="text-xs text-zinc-400 font-medium">Faltas</span>
-                            <div class="p-2 bg-red-950 text-red-500 rounded-xl"><i data-lucide="x-circle" class="w-4 h-4"></i></div>
-                        </div>
-                        <h3 class="text-2xl font-bold text-red-500" id="stat-absent">0</h3>
-                        <p class="text-[10px] text-zinc-500 mt-1">Ausencias del día</p>
-                    </div>
-                </div>
-
-                <!-- TABLE SECTION -->
-                <div class="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden shadow-2xl">
-                    <div class="p-6 border-b border-zinc-800 flex items-center justify-between flex-wrap gap-4">
-                        <div>
-                            <h3 class="font-bold text-white text-base">Control de Asistencia Biométrica y Manual</h3>
-                            <p class="text-xs text-zinc-400">Edite las horas de marcación o modifique el estado en tiempo real</p>
-                        </div>
-                        <button onclick="openAttendanceModal()" class="px-4 py-2 bg-red-600 hover:bg-red-700 active:scale-95 text-white text-xs font-semibold rounded-xl transition shadow-md shadow-red-600/20 flex items-center space-x-2">
-                            <i data-lucide="plus" class="w-4 h-4"></i>
-                            <span>Nueva Marcación</span>
-                        </button>
-                    </div>
-
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse text-sm">
-                            <thead>
-                                <tr class="bg-black/40 text-zinc-400 text-xs border-b border-zinc-800 uppercase tracking-wider">
-                                    <th class="p-4 font-semibold">Trabajador</th>
-                                    <th class="p-4 font-semibold">Cargo</th>
-                                    <th class="p-4 font-semibold">Horario (Entrada / Salida)</th>
-                                    <th class="p-4 font-semibold">Estado</th>
-                                    <th class="p-4 font-semibold">Retraso</th>
-                                </tr>
-                            </thead>
-                            <tbody id="attendance-table-body" class="divide-y divide-zinc-800/60 text-zinc-300"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- TAB 2: ANALYTICS & CHARTS -->
-            <section id="tab-analytics" class="space-y-6 hidden">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 shadow-2xl space-y-4">
-                        <h3 class="font-bold text-white text-base">Distribución de Asistencia Diaria</h3>
-                        <p class="text-xs text-zinc-400">Proporción general de puntualidad, tardanzas y faltas del personal.</p>
-                        <div class="h-64 flex items-center justify-center relative">
-                            <canvas id="attendanceChart"></canvas>
+                        <div class="bg-zinc-900/90 border border-zinc-800 p-5 rounded-2xl hover:border-red-600/40 transition shadow-xl relative overflow-hidden group backdrop-blur-md">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-xs text-zinc-400 font-medium">Faltas</span>
+                                <div class="p-2.5 bg-red-950/80 text-red-500 rounded-xl border border-red-900 group-hover:scale-110 transition-transform"><i data-lucide="x-circle" class="w-4 h-4"></i></div>
+                            </div>
+                            <div class="flex items-baseline justify-between">
+                                <h3 class="text-3xl font-bold text-red-500 tracking-tight" id="stat-absent">0</h3>
+                                <span class="text-xs font-semibold text-red-500 bg-red-500/10 px-2 py-0.5 rounded-md border border-red-500/20" id="stat-absent-pct">0%</span>
+                            </div>
+                            <p class="text-[11px] text-zinc-500 mt-1 font-medium">Ausencias del día</p>
                         </div>
                     </div>
-                    <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 shadow-2xl space-y-4">
-                        <h3 class="font-bold text-white text-base">Sueldo Base por Departamento (S/.)</h3>
-                        <p class="text-xs text-zinc-400">Distribución de los montos salariales asignados.</p>
-                        <div class="h-64 flex items-center justify-center relative">
-                            <canvas id="salaryChart"></canvas>
+
+                    <!-- TABLE SECTION -->
+                    <div class="bg-zinc-900/90 border border-zinc-800 rounded-3xl overflow-hidden shadow-2xl backdrop-blur-md">
+                        <div class="p-6 border-b border-zinc-800 flex items-center justify-between flex-wrap gap-4">
+                            <div>
+                                <h3 class="font-bold text-white text-base">Control de Asistencia Biométrica y Manual</h3>
+                                <p class="text-xs text-zinc-400 mt-0.5">Edite las horas de marcación o modifique el estado en tiempo real</p>
+                            </div>
+                            <button onclick="openAttendanceModal()" class="px-4 py-2 bg-red-600 hover:bg-red-700 active:scale-95 text-white text-xs font-semibold rounded-xl transition shadow-lg shadow-red-600/25 flex items-center space-x-2">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                                <span>Nueva Marcación</span>
+                            </button>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse text-sm">
+                                <thead>
+                                    <tr class="bg-red-950 text-red-200 text-xs border-b border-red-800 uppercase tracking-wider font-bold">
+                                        <th class="p-4">Trabajador</th>
+                                        <th class="p-4">Cargo</th>
+                                        <th class="p-4">Horario (Entrada / Salida)</th>
+                                        <th class="p-4">Estado</th>
+                                        <th class="p-4">Retraso</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="attendance-table-body" class="divide-y divide-zinc-800/60 text-zinc-300"></tbody>
+                            </table>
                         </div>
                     </div>
-                </div>
-            </section>
+                </section>
 
-            <!-- TAB 3: CANVAS -->
-            <section id="tab-canvas" class="space-y-6 hidden">
-                <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 shadow-2xl space-y-6">
-                    <div class="flex items-center justify-between flex-wrap gap-4">
-                        <div>
-                            <h3 class="font-bold text-white text-lg">Vista Gráfica Interactiva en Canvas</h3>
-                            <p class="text-xs text-zinc-400">Visualización en tiempo real del personal. Haga clic en cualquier tarjeta.</p>
+                <!-- TAB 2: ANALYTICS & CHARTS -->
+                <section id="tab-analytics" class="space-y-6 hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-zinc-900/90 border border-zinc-800 rounded-3xl p-6 shadow-2xl space-y-4 backdrop-blur-md">
+                            <h3 class="font-bold text-white text-base">Distribución de Asistencia Diaria</h3>
+                            <p class="text-xs text-zinc-400">Proporción general de puntualidad, tardanzas y faltas del personal.</p>
+                            <div class="h-64 flex items-center justify-center relative">
+                                <canvas id="attendanceChart"></canvas>
+                            </div>
                         </div>
-                        <button onclick="simulateCanvasActivity()" class="px-4 py-2 bg-red-600 hover:bg-red-700 active:scale-95 text-white text-xs font-semibold rounded-xl transition shadow-md shadow-red-600/20 flex items-center space-x-2">
-                            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-                            <span>Simular Marcación Masiva</span>
-                        </button>
-                    </div>
-                    <div class="w-full bg-black border border-zinc-800 rounded-2xl p-4 overflow-hidden relative">
-                        <canvas id="dashboard-canvas" class="w-full h-[520px] block cursor-pointer rounded-xl"></canvas>
-                    </div>
-                </div>
-            </section>
-
-            <!-- TAB 4: WORKERS MANAGEMENT -->
-            <section id="tab-workers" class="space-y-6 hidden">
-                <div class="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden shadow-2xl">
-                    <div class="p-6 border-b border-zinc-800 flex items-center justify-between flex-wrap gap-4">
-                        <div>
-                            <h3 class="font-bold text-white text-base">Directorio de Empleados</h3>
-                            <p class="text-xs text-zinc-400">Gestión de sueldos base libres, registro y fichas de personal</p>
+                        <div class="bg-zinc-900/90 border border-zinc-800 rounded-3xl p-6 shadow-2xl space-y-4 backdrop-blur-md">
+                            <h3 class="font-bold text-white text-base">Sueldo Base por Empleado (S/.)</h3>
+                            <p class="text-xs text-zinc-400">Distribución de los montos salariales asignados.</p>
+                            <div class="h-64 flex items-center justify-center relative">
+                                <canvas id="salaryChart"></canvas>
+                            </div>
                         </div>
-                        <button onclick="openWorkerModal()" class="px-4 py-2 bg-red-600 hover:bg-red-700 active:scale-95 text-white text-xs font-semibold rounded-xl transition shadow-md shadow-red-600/20 flex items-center space-x-2">
-                            <i data-lucide="user-plus" class="w-4 h-4"></i>
-                            <span>Registrar Empleado</span>
-                        </button>
                     </div>
+                </section>
 
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse text-sm">
-                            <thead>
-                                <tr class="bg-black/40 text-zinc-400 text-xs border-b border-zinc-800 uppercase tracking-wider">
-                                    <th class="p-4 font-semibold">Nombre Completo</th>
-                                    <th class="p-4 font-semibold">Cargo</th>
-                                    <th class="p-4 font-semibold">Sueldo Base</th>
-                                    <th class="p-4 font-semibold">Hora Entrada Oficial</th>
-                                    <th class="p-4 font-semibold">Tolerancia</th>
-                                    <th class="p-4 font-semibold text-center">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="workers-table-body" class="divide-y divide-zinc-800/60 text-zinc-300"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- TAB 5: SCHEDULE -->
-            <section id="tab-schedule" class="space-y-6 hidden">
-                <div class="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden shadow-2xl">
-                    <div class="p-6 border-b border-zinc-800 flex items-center justify-between flex-wrap gap-4">
-                        <div>
-                            <h3 class="font-bold text-white text-base">Cronograma de Horarios (Lunes a Domingo)</h3>
-                            <p class="text-xs text-zinc-400">Asigne turnos, días de descanso y control de descanso médico</p>
+                <!-- TAB 3: CANVAS -->
+                <section id="tab-canvas" class="space-y-6 hidden">
+                    <div class="bg-zinc-900/90 border border-zinc-800 rounded-3xl p-6 shadow-2xl space-y-6 backdrop-blur-md">
+                        <div class="flex items-center justify-between flex-wrap gap-4">
+                            <div>
+                                <h3 class="font-bold text-white text-lg">Vista Gráfica Interactiva en Canvas</h3>
+                                <p class="text-xs text-zinc-400">Visualización interactiva con tarjetas de personal. Haga clic en cualquier elemento.</p>
+                            </div>
+                            <button onclick="simulateCanvasActivity()" class="px-4 py-2 bg-red-600 hover:bg-red-700 active:scale-95 text-white text-xs font-semibold rounded-xl transition shadow-lg shadow-red-600/25 flex items-center space-x-2">
+                                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                                <span>Simular Marcación Masiva</span>
+                            </button>
                         </div>
-                        <button onclick="saveSchedules()" class="px-4 py-2 bg-red-600 hover:bg-red-700 active:scale-95 text-white text-xs font-semibold rounded-xl transition shadow-md shadow-red-600/20 flex items-center space-x-2">
-                            <i data-lucide="save" class="w-4 h-4"></i>
-                            <span>Guardar Cambios</span>
-                        </button>
-                    </div>
-
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse text-xs">
-                            <thead>
-                                <tr class="bg-black/40 text-zinc-400 border-b border-zinc-800 uppercase tracking-wider">
-                                    <th class="p-4 font-semibold">Trabajador</th>
-                                    <th class="p-4 font-semibold">Cargo</th>
-                                    <th class="p-4 font-semibold">L - V</th>
-                                    <th class="p-4 font-semibold">S - D</th>
-                                    <th class="p-4 font-semibold">Día Descanso</th>
-                                    <th class="p-4 font-semibold">Descanso Médico</th>
-                                </tr>
-                            </thead>
-                            <tbody id="schedule-table-body" class="divide-y divide-zinc-800/60 text-zinc-300"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- TAB 6: OVERTIME & ADVANCES (Horas Extra y Adelantos) -->
-            <section id="tab-overtime" class="space-y-6 hidden">
-                <div class="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden shadow-2xl">
-                    <div class="p-6 border-b border-zinc-800 flex items-center justify-between flex-wrap gap-4">
-                        <div>
-                            <h3 class="font-bold text-white text-base">Control de Horas Extra y Adelantos Quincenales</h3>
-                            <p class="text-xs text-zinc-400">Registre las horas extraordinarias y adelantos solicitados que se descontarán de la quincena</p>
+                        <div class="w-full bg-black/80 border border-zinc-800 rounded-2xl p-4 overflow-hidden relative">
+                            <canvas id="dashboard-canvas" class="w-full h-[520px] block cursor-pointer rounded-xl"></canvas>
                         </div>
-                        <button onclick="openOvertimeModal()" class="px-4 py-2 bg-red-600 hover:bg-red-700 active:scale-95 text-white text-xs font-semibold rounded-xl transition shadow-md shadow-red-600/20 flex items-center space-x-2">
-                            <i data-lucide="plus" class="w-4 h-4"></i>
-                            <span>Registrar Horas / Adelanto</span>
-                        </button>
                     </div>
+                </section>
 
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse text-sm">
-                            <thead>
-                                <tr class="bg-black/40 text-zinc-400 text-xs border-b border-zinc-800 uppercase tracking-wider">
-                                    <th class="p-4 font-semibold">Trabajador</th>
-                                    <th class="p-4 font-semibold">Horas Extra (Hrs)</th>
-                                    <th class="p-4 font-semibold">Bono Feriados (+)</th>
-                                    <th class="p-4 font-semibold">Bono (+)</th>
-                                    <th class="p-4 font-semibold">Adelantos / Préstamos (-)</th>
-                                    <th class="p-4 font-semibold text-center">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="overtime-table-body" class="divide-y divide-zinc-800/60 text-zinc-300"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- TAB 7: PAYROLL -->
-            <section id="tab-payroll" class="space-y-6 hidden">
-                <div class="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden shadow-2xl">
-                    <div class="p-6 border-b border-zinc-800 flex items-center justify-between flex-wrap gap-4">
-                        <div>
-                            <h3 class="font-bold text-white text-base">Cálculo de Planilla Quincenal Consolidada</h3>
-                            <p class="text-xs text-zinc-400">(50% Sueldo Base) + Bonos + Horas Extra - Adelantos</p>
+                <!-- TAB 4: WORKERS MANAGEMENT -->
+                <section id="tab-workers" class="space-y-6 hidden">
+                    <div class="bg-zinc-900/90 border border-zinc-800 rounded-3xl overflow-hidden shadow-2xl backdrop-blur-md">
+                        <div class="p-6 border-b border-zinc-800 flex items-center justify-between flex-wrap gap-4">
+                            <div>
+                                <h3 class="font-bold text-white text-base">Directorio de Empleados</h3>
+                                <p class="text-xs text-zinc-400">Gestión de sueldos base libres, registro y fichas de personal</p>
+                            </div>
+                            <button onclick="openWorkerModal()" class="px-4 py-2 bg-red-600 hover:bg-red-700 active:scale-95 text-white text-xs font-semibold rounded-xl transition shadow-lg shadow-red-600/25 flex items-center space-x-2">
+                                <i data-lucide="user-plus" class="w-4 h-4"></i>
+                                <span>Registrar Empleado</span>
+                            </button>
                         </div>
-                        <button onclick="calculatePayroll()" class="px-4 py-2 bg-red-600 hover:bg-red-700 active:scale-95 text-white text-xs font-semibold rounded-xl transition shadow-md shadow-red-600/20 flex items-center space-x-2">
-                            <i data-lucide="calculator" class="w-4 h-4"></i>
-                            <span>Recalcular Todo</span>
-                        </button>
-                    </div>
 
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse text-sm">
-                            <thead>
-                                <tr class="bg-black/40 text-zinc-400 text-xs border-b border-zinc-800 uppercase tracking-wider">
-                                    <th class="p-4 font-semibold">Trabajador</th>
-                                    <th class="p-4 font-semibold">Base (50%)</th>
-                                    <th class="p-4 font-semibold">Bonos</th>
-                                    <th class="p-4 font-semibold">H. Extra</th>
-                                    <th class="p-4 font-semibold">Adelantos</th>
-                                    <th class="p-4 font-semibold">Total Neto</th>
-                                    <th class="p-4 font-semibold text-center">Boleta PDF</th>
-                                </tr>
-                            </thead>
-                            <tbody id="payroll-table-body" class="divide-y divide-zinc-800/60 text-zinc-300"></tbody>
-                        </table>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse text-sm">
+                                <thead>
+                                    <tr class="bg-red-950 text-red-200 text-xs border-b border-red-800 uppercase tracking-wider font-bold">
+                                        <th class="p-4">Nombre Completo</th>
+                                        <th class="p-4">Cargo</th>
+                                        <th class="p-4">Sueldo Base</th>
+                                        <th class="p-4">Hora Entrada Oficial</th>
+                                        <th class="p-4">Tolerancia</th>
+                                        <th class="p-4 text-center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="workers-table-body" class="divide-y divide-zinc-800/60 text-zinc-300"></tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>
-            </section>
+                </section>
 
-        </main>
+                <!-- TAB 5: SCHEDULE -->
+                <section id="tab-schedule" class="space-y-6 hidden">
+                    <div class="bg-zinc-900/90 border border-zinc-800 rounded-3xl overflow-hidden shadow-2xl backdrop-blur-md">
+                        <div class="p-6 border-b border-zinc-800 flex items-center justify-between flex-wrap gap-4">
+                            <div>
+                                <h3 class="font-bold text-white text-base">Cronograma de Horarios (Lunes a Domingo)</h3>
+                                <p class="text-xs text-zinc-400">Asigne turnos, días de descanso y control de descanso médico</p>
+                            </div>
+                            <button onclick="saveSchedules()" class="px-4 py-2 bg-red-600 hover:bg-red-700 active:scale-95 text-white text-xs font-semibold rounded-xl transition shadow-lg shadow-red-600/25 flex items-center space-x-2">
+                                <i data-lucide="save" class="w-4 h-4"></i>
+                                <span>Guardar Cambios</span>
+                            </button>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse text-xs">
+                                <thead>
+                                    <tr class="bg-red-950 text-red-200 border-b border-red-800 uppercase tracking-wider font-bold">
+                                        <th class="p-4">Trabajador</th>
+                                        <th class="p-4">Cargo</th>
+                                        <th class="p-4">L - V</th>
+                                        <th class="p-4">S - D</th>
+                                        <th class="p-4">Día Descanso</th>
+                                        <th class="p-4">Descanso Médico</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="schedule-table-body" class="divide-y divide-zinc-800/60 text-zinc-300"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 6: OVERTIME & ADVANCES -->
+                <section id="tab-overtime" class="space-y-6 hidden">
+                    <div class="bg-zinc-900/90 border border-zinc-800 rounded-3xl overflow-hidden shadow-2xl backdrop-blur-md">
+                        <div class="p-6 border-b border-zinc-800 flex items-center justify-between flex-wrap gap-4">
+                            <div>
+                                <h3 class="font-bold text-white text-base">Control de Horas Extra y Adelantos Quincenales</h3>
+                                <p class="text-xs text-zinc-400">Registre las horas extraordinarias y adelantos solicitados que se descontarán de la quincena</p>
+                            </div>
+                            <button onclick="openOvertimeModal()" class="px-4 py-2 bg-red-600 hover:bg-red-700 active:scale-95 text-white text-xs font-semibold rounded-xl transition shadow-lg shadow-red-600/25 flex items-center space-x-2">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                                <span>Registrar Horas / Adelanto</span>
+                            </button>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse text-sm">
+                                <thead>
+                                    <tr class="bg-red-950 text-red-200 text-xs border-b border-red-800 uppercase tracking-wider font-bold">
+                                        <th class="p-4">Trabajador</th>
+                                        <th class="p-4">Horas Extra (Hrs)</th>
+                                        <th class="p-4">Bono Feriados (+)</th>
+                                        <th class="p-4">Bono (+)</th>
+                                        <th class="p-4">Adelantos / Préstamos (-)</th>
+                                        <th class="p-4 text-center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="overtime-table-body" class="divide-y divide-zinc-800/60 text-zinc-300"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 7: PAYROLL -->
+                <section id="tab-payroll" class="space-y-6 hidden">
+                    <div class="bg-zinc-900/90 border border-zinc-800 rounded-3xl overflow-hidden shadow-2xl backdrop-blur-md">
+                        <div class="p-6 border-b border-zinc-800 flex items-center justify-between flex-wrap gap-4">
+                            <div>
+                                <h3 class="font-bold text-white text-base">Cálculo de Planilla Quincenal Consolidada</h3>
+                                <p class="text-xs text-zinc-400">(50% Sueldo Base) + Bonos + Horas Extra - Adelantos</p>
+                            </div>
+                            <button onclick="calculatePayroll()" class="px-4 py-2 bg-red-600 hover:bg-red-700 active:scale-95 text-white text-xs font-semibold rounded-xl transition shadow-lg shadow-red-600/25 flex items-center space-x-2">
+                                <i data-lucide="calculator" class="w-4 h-4"></i>
+                                <span>Recalcular Todo</span>
+                            </button>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse text-sm">
+                                <thead>
+                                    <tr class="bg-red-950 text-red-200 text-xs border-b border-red-800 uppercase tracking-wider font-bold">
+                                        <th class="p-4">Trabajador</th>
+                                        <th class="p-4">Base (50%)</th>
+                                        <th class="p-4">Bonos</th>
+                                        <th class="p-4">H. Extra</th>
+                                        <th class="p-4">Adelantos</th>
+                                        <th class="p-4">Total Neto</th>
+                                        <th class="p-4 text-center">Boleta PDF</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="payroll-table-body" class="divide-y divide-zinc-800/60 text-zinc-300"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+            </main>
+        </div>
     </div>
 
     <!-- MODAL: ATTENDANCE -->
@@ -490,7 +537,7 @@
     <!-- MODAL: OVERTIME & ADVANCE -->
     <div id="overtime-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
         <div class="bg-zinc-900 border border-zinc-800 p-8 rounded-3xl w-full max-w-md shadow-2xl space-y-6">
-            <div class  ="flex items-center justify-between">
+            <div class="flex items-center justify-between">
                 <h3 class="text-lg font-bold text-white">Registro de Horas Extra y Adelantos</h3>
                 <button onclick="closeOvertimeModal()" class="text-zinc-400 hover:text-white p-2"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
@@ -528,14 +575,23 @@
     <div id="toast-container" class="fixed bottom-6 right-6 z-50 space-y-3 pointer-events-none"></div>
 
     <script>
-// Configuración de Supabase
+        // Configuración de Supabase
         const SUPABASE_URL = 'https://etbavprlokbzsrizizqf.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_8xP7vNg_4IUnxu0xu6lJug_mJBfv17j';
         
-        // Usamos 'supabaseClient' para evitar conflictos de nombres
         const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
         let workers = [];
+
+        // Reloj digital en tiempo real
+        function startRealtimeClock() {
+            const clockEl = document.getElementById('realtime-clock');
+            if (!clockEl) return;
+            setInterval(() => {
+                const now = new Date();
+                clockEl.textContent = now.toLocaleTimeString();
+            }, 1000);
+        }
 
         async function cargarDatosNube() {
             if (!supabaseClient) return;
@@ -595,6 +651,7 @@
             lucide.createIcons();
             setupLogin();
             cargarDatosNube();
+            startRealtimeClock();
         });
 
         function setupLogin() {
@@ -606,7 +663,6 @@
                     const email = document.getElementById('admin-email').value;
                     const password = document.getElementById('admin-password').value;
 
-                    // Intentar iniciar sesión con Supabase Auth
                     const { data, error } = await supabaseClient.auth.signInWithPassword({
                         email: email,
                         password: password
@@ -617,7 +673,6 @@
                         return;
                     }
 
-                    // Si el login es exitoso
                     document.getElementById('login-screen').classList.add('hidden');
                     document.getElementById('app-container').classList.remove('hidden');
                     document.getElementById('admin-logged-info').textContent = `Sesión activa: ${data.user.email}`;
@@ -637,7 +692,6 @@
                 });
             }
 
-            // NUEVO: Lógica para enviar el correo de recuperación
             const forgotPasswordBtn = document.getElementById('forgot-password-btn');
             if(forgotPasswordBtn) {
                 forgotPasswordBtn.addEventListener('click', async () => {
@@ -660,93 +714,92 @@
                 });
             }
         }
-            const btnExcel = document.getElementById('btn-export-excel');
-            if(btnExcel) btnExcel.addEventListener('click', exportToExcel);
 
-            const btnPdf = document.getElementById('btn-export-pdf');
-            if(btnPdf) btnPdf.addEventListener('click', exportToPDF);
+        const btnExcel = document.getElementById('btn-export-excel');
+        if(btnExcel) btnExcel.addEventListener('click', exportToExcel);
 
-            const attForm = document.getElementById('attendance-form');
-            if(attForm) {
-                attForm.addEventListener('submit', (e) => {
-                    e.preventDefault();
-                    const workerId = parseInt(document.getElementById('att-worker-id').value);
-                    const inTime = document.getElementById('att-in-time').value;
-                    const outTime = document.getElementById('att-out-time').value;
-                    const status = document.getElementById('att-status').value;
+        const btnPdf = document.getElementById('btn-export-pdf');
+        if(btnPdf) btnPdf.addEventListener('click', exportToPDF);
 
-                    const worker = workers.find(w => w.id === workerId);
-                    if(worker) {
-                        worker.inTime = inTime;
-                        worker.outTime = outTime;
-                        worker.status = status;
-                        renderAll();
-                        closeAttendanceModal();
-                        showNotification(`Marcación registrada para ${worker.name}`, 'success');
-                    }
-                });
-            }
+        const attForm = document.getElementById('attendance-form');
+        if(attForm) {
+            attForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const workerId = parseInt(document.getElementById('att-worker-id').value);
+                const inTime = document.getElementById('att-in-time').value;
+                const outTime = document.getElementById('att-out-time').value;
+                const status = document.getElementById('att-status').value;
 
-            const workerForm = document.getElementById('worker-form');
-if(workerForm) {
-    workerForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const name = document.getElementById('new-worker-name').value;
-        const cargo = document.getElementById('new-worker-cargo').value;
-        const base = parseFloat(document.getElementById('new-worker-base').value) || 1600;
-        const entry = document.getElementById('new-worker-entry').value;
-
-        const newId = workers.length > 0 ? Math.max(...workers.map(w => w.id)) + 1 : 1;
-        
-        const newWorker = {
-            id: newId, 
-            name: name, 
-            cargo: cargo, 
-            base: base, 
-            entry: entry, 
-            tolerance: 10, 
-            status: "A Tiempo", 
-            bonus: 0,
-            overtimeHours: 0, 
-            advanceAmount: 0, 
-            scheduleLV: "08:00 - 17:00",
-            scheduleSD: "08:00 - 13:00", 
-            restDay: "Domingo", 
-            medicalRest: "No"
-        };
-
-        // 1. Guardar localmente en el arreglo
-        workers.push(newWorker);
-        
-        // 2. ENVIAR A SUPABASE (Esta era la línea faltante)
-        if (supabaseClient) {
-            const { error } = await supabaseClient.from('workers').insert([{
-                id: newWorker.id,
-                name: newWorker.name,
-                cargo: newWorker.cargo,
-                base: newWorker.base,
-                entry: newWorker.entry,
-                tolerance: newWorker.tolerance,
-                status: newWorker.status,
-                bonus: newWorker.bonus,
-                overtime_hours: newWorker.overtimeHours,
-                advance_amount: newWorker.advanceAmount,
-                schedule_lv: newWorker.scheduleLV,
-                schedule_sd: newWorker.scheduleSD,
-                rest_day: newWorker.restDay,
-                medical_rest: newWorker.medicalRest
-            }]);
-
-            if (error) {
-                console.error("Error al guardar en Supabase:", error);
-            }
+                const worker = workers.find(w => w.id === workerId);
+                if(worker) {
+                    worker.inTime = inTime;
+                    worker.outTime = outTime;
+                    worker.status = status;
+                    renderAll();
+                    closeAttendanceModal();
+                    showNotification(`Marcación registrada para ${worker.name}`, 'success');
+                }
+            });
         }
 
-        renderAll();
-        closeWorkerModal();
-        workerForm.reset();
-    });
-}
+        const workerForm = document.getElementById('worker-form');
+        if(workerForm) {
+            workerForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const name = document.getElementById('new-worker-name').value;
+                const cargo = document.getElementById('new-worker-cargo').value;
+                const base = parseFloat(document.getElementById('new-worker-base').value) || 1600;
+                const entry = document.getElementById('new-worker-entry').value;
+
+                const newId = workers.length > 0 ? Math.max(...workers.map(w => w.id)) + 1 : 1;
+                
+                const newWorker = {
+                    id: newId, 
+                    name: name, 
+                    cargo: cargo, 
+                    base: base, 
+                    entry: entry, 
+                    tolerance: 10, 
+                    status: "A Tiempo", 
+                    bonus: 0,
+                    overtimeHours: 0, 
+                    advanceAmount: 0, 
+                    scheduleLV: "08:00 - 17:00",
+                    scheduleSD: "08:00 - 13:00", 
+                    restDay: "Domingo", 
+                    medicalRest: "No"
+                };
+
+                workers.push(newWorker);
+                
+                if (supabaseClient) {
+                    const { error } = await supabaseClient.from('workers').insert([{
+                        id: newWorker.id,
+                        name: newWorker.name,
+                        cargo: newWorker.cargo,
+                        base: newWorker.base,
+                        entry: newWorker.entry,
+                        tolerance: newWorker.tolerance,
+                        status: newWorker.status,
+                        bonus: newWorker.bonus,
+                        overtime_hours: newWorker.overtimeHours,
+                        advance_amount: newWorker.advanceAmount,
+                        schedule_lv: newWorker.scheduleLV,
+                        schedule_sd: newWorker.scheduleSD,
+                        rest_day: newWorker.restDay,
+                        medical_rest: newWorker.medicalRest
+                    }]);
+
+                    if (error) {
+                        console.error("Error al guardar en Supabase:", error);
+                    }
+                }
+
+                renderAll();
+                closeWorkerModal();
+                workerForm.reset();
+            });
+        }
 
         function switchTab(tabName) {
             document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
@@ -754,11 +807,11 @@ if(workerForm) {
             if(targetSec) targetSec.classList.remove('hidden');
 
             document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('border-red-600', 'text-white');
-                btn.classList.add('border-transparent', 'text-zinc-400');
+                btn.classList.remove('border-gold-500', 'text-white', 'gold-glow-active');
+                btn.classList.add('border-transparent');
                 if(btn.getAttribute('data-tab') === tabName) {
-                    btn.classList.remove('border-transparent', 'text-zinc-400');
-                    btn.classList.add('border-red-600', 'text-white');
+                    btn.classList.remove('border-transparent');
+                    btn.classList.add('border-gold-500', 'text-white', 'gold-glow-active');
                 }
             });
 
@@ -785,10 +838,16 @@ if(workerForm) {
                 else if(w.status === 'Tardanza') late++;
                 else if(w.status === 'Falta') absent++;
             });
+
             document.getElementById('stat-total').textContent = total;
             document.getElementById('stat-ontime').textContent = onTime;
             document.getElementById('stat-late').textContent = late;
             document.getElementById('stat-absent').textContent = absent;
+
+            const totalCalc = total > 0 ? total : 1;
+            document.getElementById('stat-ontime-pct').textContent = `${Math.round((onTime / totalCalc) * 100)}%`;
+            document.getElementById('stat-late-pct').textContent = `${Math.round((late / totalCalc) * 100)}%`;
+            document.getElementById('stat-absent-pct').textContent = `${Math.round((absent / totalCalc) * 100)}%`;
         }
 
         function renderAttendanceTable() {
@@ -805,6 +864,10 @@ if(workerForm) {
                     delayMinutes = diff > 0 ? diff : 0;
                 }
 
+                let statusBadgeStyle = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+                if(w.status === 'Tardanza') statusBadgeStyle = "bg-amber-500/10 text-amber-400 border-amber-500/20";
+                if(w.status === 'Falta') statusBadgeStyle = "bg-red-500/10 text-red-400 border-red-500/20";
+
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-zinc-800/40 transition";
                 tr.innerHTML = `
@@ -812,14 +875,14 @@ if(workerForm) {
                     <td class="p-4 text-zinc-400 text-xs">${w.cargo}</td>
                     <td class="p-4 font-mono text-xs">
                         <div class="flex items-center space-x-2">
-                            <span>Entrada:</span>
-                            <input type="time" value="${w.inTime || ''}" onchange="updateWorkerTime(${w.id}, 'inTime', this.value)" class="bg-black border border-zinc-700 rounded px-2 py-1 text-white text-xs focus:outline-none focus:border-red-600 transition">
-                            <span>| Salida:</span>
-                            <input type="time" value="${w.outTime || ''}" onchange="updateWorkerTime(${w.id}, 'outTime', this.value)" class="bg-black border border-zinc-700 rounded px-2 py-1 text-white text-xs focus:outline-none focus:border-red-600 transition">
+                            <span class="text-zinc-500">Entrada:</span>
+                            <input type="time" value="${w.inTime || ''}" onchange="updateWorkerTime(${w.id}, 'inTime', this.value)" class="bg-black border border-zinc-700 rounded-lg px-2 py-1 text-white text-xs focus:outline-none focus:border-red-600 transition">
+                            <span class="text-zinc-500">| Salida:</span>
+                            <input type="time" value="${w.outTime || ''}" onchange="updateWorkerTime(${w.id}, 'outTime', this.value)" class="bg-black border border-zinc-700 rounded-lg px-2 py-1 text-white text-xs focus:outline-none focus:border-red-600 transition">
                         </div>
                     </td>
                     <td class="p-4">
-                        <select onchange="updateWorkerStatus(${w.id}, this.value)" class="bg-black border border-zinc-700 text-white rounded-xl px-3 py-1.5 text-xs font-medium focus:outline-none focus:border-red-600 transition cursor-pointer">
+                        <select onchange="updateWorkerStatus(${w.id}, this.value)" class="bg-black border border-zinc-700 rounded-xl px-3 py-1.5 text-xs font-semibold focus:outline-none focus:border-red-600 transition cursor-pointer ${statusBadgeStyle}">
                             <option value="A Tiempo" ${w.status === 'A Tiempo' ? 'selected' : ''}>🟢 A Tiempo</option>
                             <option value="Tardanza" ${w.status === 'Tardanza' ? 'selected' : ''}>🟠 Tardanza</option>
                             <option value="Falta" ${w.status === 'Falta' ? 'selected' : ''}>🔴 Falta</option>
@@ -869,13 +932,13 @@ if(workerForm) {
                 tr.innerHTML = `
                     <td class="p-4 font-semibold text-white">${w.name}</td>
                     <td class="p-4">
-                        <input type="text" value="${w.cargo}" onchange="updateWorkerCargo(${w.id}, this.value)" class="bg-black border border-zinc-700 rounded-xl px-3 py-1.5 text-white text-xs w-full focus:outline-none focus:border-red-600 transition" title="Modificar cargo">
+                        <input type="text" value="${w.cargo}" onchange="updateWorkerCargo(${w.id}, this.value)" class="bg-black border border-zinc-700 rounded-xl px-3 py-1.5 text-xs w-full focus:outline-none focus:border-red-600 transition" title="Modificar cargo">
                     </td>
-                    <td class="p-4 font-mono text-xs text-emerald-400">S/. ${w.base.toFixed(2)}</td>
+                    <td class="p-4 font-mono text-xs text-emerald-400 font-semibold">S/. ${w.base.toFixed(2)}</td>
                     <td class="p-4 font-mono text-xs">${w.entry}</td>
                     <td class="p-4 font-mono text-xs">
                         <div class="flex items-center space-x-1.5">
-                            <input type="number" min="0" max="60" value="${w.tolerance || 10}" onchange="updateWorkerTolerance(${w.id}, this.value)" class="bg-black border border-zinc-700 rounded px-2 py-1 text-white text-xs w-16 focus:outline-none focus:border-red-600 transition">
+                            <input type="number" min="0" max="60" value="${w.tolerance || 10}" onchange="updateWorkerTolerance(${w.id}, this.value)" class="bg-black border border-zinc-700 rounded-lg px-2 py-1 text-white text-xs w-16 focus:outline-none focus:border-red-600 transition">
                             <span class="text-zinc-400">min</span>
                         </div>
                     </td>
@@ -919,14 +982,12 @@ if(workerForm) {
                     <td class="p-4 text-zinc-400">${w.cargo}</td>
                     <td class="p-4">
                         <div class="relative flex items-center">
-                            <input type="text" list="turnos-sugeridos" value="${w.scheduleLV || '08:00 - 17:00'}" onchange="updateSchedule(${w.id}, 'scheduleLV', this.value)" class="bg-black border border-zinc-700 text-white rounded-xl px-3 py-1.5 text-xs w-36 focus:outline-none focus:border-red-600 transition pr-7">
-                            <span class="absolute right-2.5 text-zinc-400 pointer-events-none text-xs">▼</span>
+                            <input type="text" value="${w.scheduleLV || '08:00 - 17:00'}" onchange="updateSchedule(${w.id}, 'scheduleLV', this.value)" class="bg-black border border-zinc-700 text-white rounded-xl px-3 py-1.5 text-xs w-36 focus:outline-none focus:border-red-600 transition">
                         </div>
                     </td>
                     <td class="p-4">
                         <div class="relative flex items-center">
-                            <input type="text" list="turnos-sugeridos" value="${w.scheduleSD || '08:00 - 13:00'}" onchange="updateSchedule(${w.id}, 'scheduleSD', this.value)" class="bg-black border border-zinc-700 text-white rounded-xl px-3 py-1.5 text-xs w-36 focus:outline-none focus:border-red-600 transition pr-7">
-                            <span class="absolute right-2.5 text-zinc-400 pointer-events-none text-xs">▼</span>
+                            <input type="text" value="${w.scheduleSD || '08:00 - 13:00'}" onchange="updateSchedule(${w.id}, 'scheduleSD', this.value)" class="bg-black border border-zinc-700 text-white rounded-xl px-3 py-1.5 text-xs w-36 focus:outline-none focus:border-red-600 transition">
                         </div>
                     </td>
                     <td class="p-4">
@@ -962,7 +1023,7 @@ if(workerForm) {
                 tr.className = "hover:bg-zinc-800/40 transition";
                 tr.innerHTML = `
                     <td class="p-4 font-semibold text-white">${w.name}</td>
-                    <td class="p-4 font-mono text-xs text-sky-400">${w.overtimeHours || 0} hrs (+S/. ${overtimePay.toFixed(2)})</td>
+                    <td class="p-4 font-mono text-xs text-sky-400 font-semibold">${w.overtimeHours || 0} hrs (+S/. ${overtimePay.toFixed(2)})</td>
                     <td class="p-4 font-mono text-xs text-emerald-400">+ S/. ${holidayPay.toFixed(2)}</td>
                     <td class="p-4 font-mono text-xs text-emerald-400">+ S/. ${customB.toFixed(2)}</td>
                     <td class="p-4 font-mono text-xs text-amber-400">- S/. ${advance.toFixed(2)}</td>
@@ -1019,7 +1080,6 @@ if(workerForm) {
                 const hourlyRate = (w.base / 30 / 8) * 1.25;
                 const overtimePay = (w.overtimeHours || 0) * hourlyRate;
                 
-                // Solo sumamos los bonos si se ingresaron de forma manual en el panel de horas extra/feriados
                 const holidayPay = w.holidayBonus || 0;
                 const customB = w.customBonus || 0;
                 const totalBonos = holidayPay + customB;
@@ -1037,7 +1097,7 @@ if(workerForm) {
                     <td class="p-4 font-mono text-xs text-amber-400">- S/. ${advance.toFixed(2)}</td>
                     <td class="p-4 font-mono text-xs font-bold text-white">S/. ${totalNet.toFixed(2)}</td>
                     <td class="p-4 text-center">
-                        <button onclick="downloadReceipt('${w.name}', ${quincenaBase}, ${totalBonos}, ${overtimePay}, ${advance}, ${totalNet})" class="px-3 py-1.5 bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white text-xs font-semibold rounded-xl border border-red-900">Boleta PDF</button>
+                        <button onclick="downloadReceipt('${w.name}', ${quincenaBase}, ${totalBonos}, ${overtimePay}, ${advance}, ${totalNet})" class="px-3 py-1.5 bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white text-xs font-semibold rounded-xl border border-red-900/80">Boleta PDF</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -1052,7 +1112,6 @@ if(workerForm) {
         async function deleteWorker(id) {
             const worker = workers.find(w => w.id === id);
             if(worker && confirm(`¿Está seguro de eliminar a ${worker.name}?`)) {
-                // 1. ELIMINAR DE SUPABASE
                 if (supabaseClient) {
                     const { error } = await supabaseClient
                         .from('workers')
@@ -1066,7 +1125,6 @@ if(workerForm) {
                     }
                 }
 
-                // 2. ELIMINAR DE LA VISTA LOCAL
                 workers = workers.filter(w => w.id !== id);
                 renderAll();
                 showNotification(`Empleado eliminado correctamente`, 'info');
@@ -1095,16 +1153,6 @@ if(workerForm) {
         function closeScannerModal() { document.getElementById('scanner-modal').classList.add('hidden'); }
         function openOvertimeModal() { document.getElementById('overtime-modal').classList.remove('hidden'); }
         function closeOvertimeModal() { document.getElementById('overtime-modal').classList.add('hidden'); }
-
-        function openOvertimeModalFor(id) {
-            openOvertimeModal();
-            document.getElementById('ot-worker-id').value = id;
-            const w = workers.find(x => x.id === id);
-            if(w) {
-                document.getElementById('ot-hours').value = w.overtimeHours;
-                document.getElementById('ot-advance').value = w.advanceAmount;
-            }
-        }
 
         function populateSelects() {
             ['att-worker-id', 'scanner-worker-id', 'ot-worker-id'].forEach(selId => {
@@ -1138,8 +1186,7 @@ if(workerForm) {
         function exportToExcel() {
             showNotification('Generando archivo CSV para Excel...', 'info');
 
-            // Usamos punto y coma (;) como separador para que Excel lo reconozca por defecto en español
-            let csvContent = "\uFEFF"; // BOM para asegurar tildes y eñes
+            let csvContent = "\uFEFF";
             csvContent += "Trabajador;Cargo;Sueldo Mensual;Quincena (50%);Bono Feriados;Bono Manual;Horas Extra (S/.);Adelantos;Total Neto;Hora Entrada;Hora Salida;Estado;Descanso Médico\n";
 
             workers.forEach(w => {
@@ -1183,11 +1230,11 @@ if(workerForm) {
 
             setTimeout(() => {
                 const { jsPDF } = window.jspdf;
-                const doc = new jsPDF('landscape', 'pt', 'a4'); // Orientación horizontal para que entren todas las columnas
+                const doc = new jsPDF('landscape', 'pt', 'a4');
 
                 doc.setFont("helvetica", "bold");
                 doc.setFontSize(16);
-                doc.setTextColor(220, 38, 38); // Rojo corporativo
+                doc.setTextColor(220, 38, 38);
                 doc.text("REPORTE CONSOLIDADO DE ASISTENCIA Y PLANILLA - VILLANOS", 40, 35);
 
                 doc.setFont("helvetica", "normal");
@@ -1195,7 +1242,6 @@ if(workerForm) {
                 doc.setTextColor(150, 150, 150);
                 doc.text(`Fecha de emisión: ${new Date().toLocaleDateString()} | Supervisor: ${currentAdmin.name}`, 40, 50);
 
-                // Columnas ampliadas con todos los datos financieros solicitados
                 const tableColumns = ["Trabajador", "Cargo", "Sueldo Mens.", "Quincena", "B. Feriados", "B. Manual", "H. Extra", "Adelantos", "Total Neto", "Estado"];
                 const tableRows = [];
 
@@ -1244,10 +1290,10 @@ if(workerForm) {
                     columnStyles: {
                         2: { halign: 'right' },
                         3: { halign: 'right' },
-                        4: { halign: 'right', textColor: [16, 185, 129] }, // Verde para bonos
-                        5: { halign: 'right', textColor: [16, 185, 129] }, // Verde para bonos
-                        6: { halign: 'right', textColor: [14, 165, 233] }, // Celeste para horas extra
-                        7: { halign: 'right', textColor: [245, 158, 11] }, // Ámbar para adelantos
+                        4: { halign: 'right', textColor: [16, 185, 129] },
+                        5: { halign: 'right', textColor: [16, 185, 129] },
+                        6: { halign: 'right', textColor: [14, 165, 233] },
+                        7: { halign: 'right', textColor: [245, 158, 11] },
                         8: { halign: 'right', fontStyle: 'bold' },
                         9: { halign: 'center', fontStyle: 'bold' }
                     },
@@ -1268,9 +1314,8 @@ if(workerForm) {
 
             setTimeout(() => {
                 const { jsPDF } = window.jspdf;
-                const doc = new jsPDF('portrait', 'pt', 'a4'); // Orientación vertical estándar para boletas
+                const doc = new jsPDF('portrait', 'pt', 'a4');
 
-                // Buscamos los datos actuales del trabajador para mostrar detalles precisos
                 const w = workers.find(x => x.name === name);
                 if (!w) return;
 
@@ -1283,22 +1328,19 @@ if(workerForm) {
                 const adv = w.advanceAmount || 0;
                 const netoPagar = qBase + generalB + holidayB + customB + hExtraPay - adv;
 
-                // Cabecera institucional
                 doc.setFont("helvetica", "bold");
                 doc.setFontSize(16);
-                doc.setTextColor(220, 38, 38); // Rojo corporativo
+                doc.setTextColor(220, 38, 38);
                 doc.text("VILLANOS - SABOR Y CARÁCTER", 40, 40);
 
                 doc.setFontSize(10);
                 doc.setTextColor(100, 100, 100);
                 doc.text("BOLETA DE PAGO QUINCENAL", 40, 58);
 
-                // Línea separadora
                 doc.setDrawColor(220, 38, 38);
                 doc.setLineWidth(1.5);
                 doc.line(40, 70, 555, 70);
 
-                // Datos del Trabajador
                 doc.setFont("helvetica", "bold");
                 doc.setFontSize(11);
                 doc.setTextColor(50, 50, 50);
@@ -1312,7 +1354,6 @@ if(workerForm) {
                 doc.text(`Fecha de Emisión: ${new Date().toLocaleDateString()}`, 360, 115);
                 doc.text(`Periodo: Quincena Actual`, 360, 130);
 
-                // Tabla de Conceptos Remunerativos y Descuentos
                 const tableColumns = ["Concepto / Descripción", "Tipo", "Monto (S/.)"];
                 const tableRows = [
                     ["50% Sueldo Base (Quincena)", "Ingreso", `S/. ${qBase.toFixed(2)}`],
@@ -1345,7 +1386,6 @@ if(workerForm) {
                     }
                 });
 
-                // Recuadro de Total Neto a Pagar
                 const finalY = doc.lastAutoTable.finalY + 25;
                 doc.setFillColor(240, 240, 240);
                 doc.roundedRect(320, finalY, 235, 45, 6, 6, 'F');
@@ -1359,7 +1399,6 @@ if(workerForm) {
                 doc.setTextColor(220, 38, 38);
                 doc.text(`S/. ${netoPagar.toFixed(2)}`, 540, finalY + 28, { align: 'right' });
 
-                // Líneas de firma
                 doc.setDrawColor(150, 150, 150);
                 doc.setLineWidth(0.75);
                 doc.line(60, finalY + 95, 220, finalY + 95);
@@ -1371,7 +1410,6 @@ if(workerForm) {
                 doc.text("Firma del Empleador", 140, finalY + 110, { align: 'center' });
                 doc.text("Firma del Trabajador", 435, finalY + 110, { align: 'center' });
 
-                // Descargar el PDF con el nombre del empleado
                 doc.save(`Boleta_Pago_${w.name.replace(/\s+/g, '_')}.pdf`);
                 showNotification(`Boleta PDF generada para ${w.name}`, 'success');
             }, 500);
@@ -1444,7 +1482,7 @@ if(workerForm) {
             }
         }
 
-        // Canvas UI
+        // Canvas UI con Avatares e Iniciales
         function initCanvas() {
             const canvas = document.getElementById('dashboard-canvas');
             if(!canvas) return;
@@ -1462,7 +1500,7 @@ if(workerForm) {
             const cols = window.innerWidth < 768 ? 1 : (window.innerWidth < 1024 ? 2 : 4);
             const padding = 16;
             const cardWidth = (width - (padding * (cols + 1))) / cols;
-            const cardHeight = 110;
+            const cardHeight = 115;
 
             workers.forEach((w, index) => {
                 const c = index % cols;
@@ -1473,31 +1511,66 @@ if(workerForm) {
                 ctx.fillStyle = '#18181b'; 
                 ctx.strokeStyle = '#27272a'; 
                 ctx.lineWidth = 1.5;
-                drawRoundedRect(ctx, x, y, cardWidth, cardHeight, 12);
+                drawRoundedRect(ctx, x, y, cardWidth, cardHeight, 14);
                 ctx.fill();
                 ctx.stroke();
 
                 let statusColor = w.status === 'A Tiempo' ? '#10b981' : (w.status === 'Tardanza' ? '#f59e0b' : '#ef4444');
-                ctx.fillStyle = statusColor;
-                ctx.beginPath(); ctx.arc(x + 20, y + 22, 6, 0, Math.PI * 2); ctx.fill();
 
-                ctx.fillStyle = '#ffffff'; ctx.font = 'bold 13px Inter, sans-serif';
+                const avatarX = x + 30;
+                const avatarY = y + 32;
+                const avatarRadius = 16;
+
+                ctx.beginPath();
+                ctx.arc(avatarX, avatarY, avatarRadius + 2, 0, Math.PI * 2);
+                ctx.strokeStyle = statusColor;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.arc(avatarX, avatarY, avatarRadius, 0, Math.PI * 2);
+                ctx.fillStyle = '#27272a';
+                ctx.fill();
+
+                const nameParts = w.name.trim().split(' ');
+                const initials = nameParts.length > 1 
+                    ? (nameParts[0][0] + nameParts[1][0]).toUpperCase() 
+                    : nameParts[0].slice(0, 2).toUpperCase();
+
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 11px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(initials, avatarX, avatarY);
+
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'alphabetic';
+                ctx.fillStyle = '#ffffff'; 
+                ctx.font = 'bold 13px Inter, sans-serif';
                 let dName = w.name;
-                if(ctx.measureText(dName).width > cardWidth - 45) dName = dName.slice(0, 14) + '...';
-                ctx.fillText(dName, x + 35, y + 26);
+                if(ctx.measureText(dName).width > cardWidth - 70) dName = dName.slice(0, 13) + '...';
+                ctx.fillText(dName, x + 56, y + 28);
 
-                ctx.fillStyle = '#a1a1aa'; ctx.font = '11px Inter, sans-serif';
+                ctx.fillStyle = '#a1a1aa'; 
+                ctx.font = '11px Inter, sans-serif';
                 let dCargo = w.cargo;
-                if(ctx.measureText(dCargo).width > cardWidth - 30) dCargo = dCargo.slice(0, 18) + '...';
-                ctx.fillText(dCargo, x + 16, y + 48);
+                if(ctx.measureText(dCargo).width > cardWidth - 70) dCargo = dCargo.slice(0, 16) + '...';
+                ctx.fillText(dCargo, x + 56, y + 44);
 
-                ctx.strokeStyle = '#27272a'; ctx.beginPath(); ctx.moveTo(x + 16, y + 60); ctx.lineTo(x + cardWidth - 16, y + 60); ctx.stroke();
+                ctx.strokeStyle = '#27272a'; 
+                ctx.beginPath(); 
+                ctx.moveTo(x + 16, y + 62); 
+                ctx.lineTo(x + cardWidth - 16, y + 62); 
+                ctx.stroke();
 
-                ctx.fillStyle = '#d4d4d8'; ctx.font = '10px Inter, sans-serif';
-                ctx.fillText(`Entrada: ${w.inTime || 'Sin marcar'}`, x + 16, y + 80);
+                ctx.fillStyle = '#d4d4d8'; 
+                ctx.font = '10px Inter, sans-serif';
+                ctx.fillText(`Entrada: ${w.inTime || 'Sin marcar'}`, x + 16, y + 86);
                 
-                ctx.fillStyle = statusColor; ctx.font = 'bold 11px Inter, sans-serif'; ctx.textAlign = 'right';
-                ctx.fillText(w.status, x + cardWidth - 16, y + 80);
+                ctx.fillStyle = statusColor; 
+                ctx.font = 'bold 11px Inter, sans-serif'; 
+                ctx.textAlign = 'right';
+                ctx.fillText(w.status, x + cardWidth - 16, y + 86);
                 ctx.textAlign = 'left';
             });
 
