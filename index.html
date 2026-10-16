@@ -1049,12 +1049,27 @@ if(workerForm) {
             if(worker) { worker[field] = val; showNotification(`Cronograma actualizado para ${worker.name}`, 'info'); }
         }
 
-        function deleteWorker(id) {
+        async function deleteWorker(id) {
             const worker = workers.find(w => w.id === id);
             if(worker && confirm(`¿Está seguro de eliminar a ${worker.name}?`)) {
+                // 1. ELIMINAR DE SUPABASE
+                if (supabaseClient) {
+                    const { error } = await supabaseClient
+                        .from('workers')
+                        .delete()
+                        .eq('id', id);
+
+                    if (error) {
+                        console.error("Error al eliminar en Supabase:", error);
+                        showNotification('Error al eliminar de la base de datos', 'error');
+                        return;
+                    }
+                }
+
+                // 2. ELIMINAR DE LA VISTA LOCAL
                 workers = workers.filter(w => w.id !== id);
                 renderAll();
-                showNotification(`Empleado eliminado`, 'info');
+                showNotification(`Empleado eliminado correctamente`, 'info');
             }
         }
 
@@ -1121,98 +1136,46 @@ if(workerForm) {
         }
 
         function exportToExcel() {
-            showNotification('Generando reporte en Excel con diseño profesional...', 'info');
+            showNotification('Generando archivo CSV para Excel...', 'info');
 
-            setTimeout(() => {
-                let htmlContent = `
-                    <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-                    <head>
-                        <meta charset="UTF-8">
-                        <style>
-                            body { font-family: 'Inter', Arial, sans-serif; }
-                            .header-title { font-size: 16px; font-weight: bold; color: #dc2626; text-align: center; background-color: #000000; padding: 12px; }
-                            .sub-header { font-size: 10px; color: #71717a; text-align: center; margin-bottom: 15px; }
-                            table { border-collapse: collapse; width: 100%; margin-top: 10px; }
-                            th { background-color: #18181b; color: #ffffff; font-weight: bold; font-size: 11px; text-align: center; padding: 10px; border: 1px solid #3f3f46; }
-                            td { font-size: 10px; padding: 8px; border: 1px solid #d4d4d8; vertical-align: middle; }
-                            .text-left { text-align: left; }
-                            .text-right { text-align: right; }
-                            .text-center { text-align: center; }
-                            .font-bold { font-weight: bold; }
-                            .bg-alt { background-color: #f4f4f5; }
-                            .text-green { color: #047857; font-weight: bold; }
-                            .text-sky { color: #0369a1; font-weight: bold; }
-                            .text-amber { color: #b45309; font-weight: bold; }
-                        </style>
-                    </head>
-                    <body>
-                        <table>
-                            <tr>
-                                <td colspan="10" class="header-title">VILLANOS - SABOR Y CARÁCTER | PLANILLA QUINCENAL Y ASISTENCIA</td>
-                            </tr>
-                            <tr>
-                                <td colspan="10" class="sub-header">Fecha de emisión: ${new Date().toLocaleDateString()} | Supervisor: ${currentAdmin.name}</td>
-                            </tr>
-                            <tr>
-                                <th>TRABAJADOR</th>
-                                <th>CARGO</th>
-                                <th>SUELDO MENSUAL</th>
-                                <th>QUINCENA (50%)</th>
-                                <th>BONO FERIADOS</th>
-                                <th>BONO MANUAL</th>
-                                <th>HORAS EXTRA</th>
-                                <th>ADELANTOS</th>
-                                <th>TOTAL NETO</th>
-                                <th>ESTADO</th>
-                            </tr>
-                `;
+            // Usamos punto y coma (;) como separador para que Excel lo reconozca por defecto en español
+            let csvContent = "\uFEFF"; // BOM para asegurar tildes y eñes
+            csvContent += "Trabajador;Cargo;Sueldo Mensual;Quincena (50%);Bono Feriados;Bono Manual;Horas Extra (S/.);Adelantos;Total Neto;Hora Entrada;Hora Salida;Estado;Descanso Médico\n";
 
-                workers.forEach((w, index) => {
-                    const quincena = w.base / 2;
-                    const hourlyRate = (w.base / 30 / 8) * 1.25;
-                    const overtimePay = (w.overtimeHours || 0) * hourlyRate;
-                    const holidayB = w.holidayBonus || 0;
-                    const customB = w.customBonus || 0;
-                    const advance = w.advanceAmount || 0;
-                    const totalNet = quincena + holidayB + customB + overtimePay - advance;
+            workers.forEach(w => {
+                const nombre = `"${w.name.replace(/"/g, '""')}"`;
+                const cargo = `"${w.cargo.replace(/"/g, '""')}"`;
+                const sueldoMensual = w.base.toFixed(2);
+                const quincena = (w.base / 2).toFixed(2);
+                const bonoFeriados = (w.holidayBonus || 0).toFixed(2);
+                const bonoManual = (w.customBonus || 0).toFixed(2);
+                
+                const hourlyRate = (w.base / 30 / 8) * 1.25;
+                const overtimePay = ((w.overtimeHours || 0) * hourlyRate).toFixed(2);
+                const adelantos = (w.advanceAmount || 0).toFixed(2);
+                
+                const totalBonos = (w.holidayBonus || 0) + (w.customBonus || 0);
+                const totalNet = (w.base / 2) + totalBonos + parseFloat(overtimePay) - (w.advanceAmount || 0);
 
-                    const rowBg = index % 2 === 0 ? '' : 'bg-alt';
+                const entrada = `"${w.inTime || 'Sin marcar'}"`;
+                const salida = `"${w.outTime || 'Sin marcar'}"`;
+                const estado = `"${w.status}"`;
+                const descanso = `"${w.medicalRest}"`;
 
-                    htmlContent += `
-                        <tr class="${rowBg}">
-                            <td class="text-left font-bold">${w.name}</td>
-                            <td class="text-left">${w.cargo}</td>
-                            <td class="text-right">S/. ${w.base.toFixed(2)}</td>
-                            <td class="text-right">S/. ${quincena.toFixed(2)}</td>
-                            <td class="text-right text-green">+ S/. ${holidayB.toFixed(2)}</td>
-                            <td class="text-right text-green">+ S/. ${customB.toFixed(2)}</td>
-                            <td class="text-right text-sky">+ S/. ${overtimePay.toFixed(2)}</td>
-                            <td class="text-right text-amber">- S/. ${advance.toFixed(2)}</td>
-                            <td class="text-right font-bold">S/. ${totalNet.toFixed(2)}</td>
-                            <td class="text-center font-bold">${w.status}</td>
-                        </tr>
-                    `;
-                });
+                csvContent += `${nombre};${cargo};${sueldoMensual};${quincena};${bonoFeriados};${bonoManual};${overtimePay};${adelantos};${totalNet.toFixed(2)};${entrada};${salida};${estado};${descanso}\n`;
+            });
 
-                htmlContent += `
-                        </table>
-                    </body>
-                    </html>
-                `;
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Control_Asistencia_y_Planilla.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
 
-                // Crear blob con formato excel (MIME type office excel)
-                const blob = new Blob(['\ufeff' + htmlContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `Planilla_Consolidada_Villanos.xls`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-
-                showNotification('Reporte Excel con diseño estilizado descargado con éxito', 'success');
-            }, 500);
+            showNotification('Reporte exportado con éxito', 'success');
         }
 
         function exportToPDF() {
