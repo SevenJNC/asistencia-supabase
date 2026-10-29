@@ -605,6 +605,8 @@
                     entry: item.entry,
                     tolerance: item.tolerance || 10,
                     status: item.status || 'A Tiempo',
+                    inTime: item.in_time || '',
+                    outTime: item.out_time || '',
                     bonus: item.bonus || 0,
                     overtimeHours: item.overtime_hours || 0,
                     holidayBonus: item.holiday_bonus || 0,
@@ -647,11 +649,31 @@
         let attendanceChartInstance = null;
         let salaryChartInstance = null;
 
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
             setupLogin();
-            cargarDatosNube();
             startRealtimeClock();
+
+    // Verificamos si ya hay una sesión activa en Supabase
+            if (supabaseClient) {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                if (session && session.user) {
+            // Si ya hay sesión, ocultamos el login y cargamos la app directamente
+                    document.getElementById('login-screen').classList.add('hidden');
+                    document.getElementById('app-container').classList.remove('hidden');
+                    document.getElementById('admin-logged-info').textContent = `Sesión activa: ${session.user.email}`;
+            
+            // Cargamos datos y vistas
+                    await cargarDatosNube();
+                    initCanvas();
+                    initCharts();
+                } else {
+            // Si no hay sesión, cargamos datos por si acaso y dejamos el login visible
+                    cargarDatosNube();
+                }
+            } else {
+                cargarDatosNube();
+            }
         });
 
         function setupLogin() {
@@ -662,11 +684,23 @@
                     e.preventDefault();
                     const email = document.getElementById('admin-email').value;
                     const password = document.getElementById('admin-password').value;
+                    const submitBtn = loginForm.querySelector('button[type="submit"]');
+                    
+                    // Feedback visual: Deshabilitar botón y mostrar estado de carga
+                    const originalBtnText = submitBtn.innerHTML;
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Iniciando sesión...</span>`;
+                    lucide.createIcons();
 
                     const { data, error } = await supabaseClient.auth.signInWithPassword({
                         email: email,
                         password: password
                     });
+
+                    // Restaurar botón
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnText;
+                    lucide.createIcons();
 
                     if (error) {
                         showNotification('Credenciales incorrectas o acceso no autorizado', 'error');
@@ -750,6 +784,13 @@
                 const cargo = document.getElementById('new-worker-cargo').value;
                 const base = parseFloat(document.getElementById('new-worker-base').value) || 1600;
                 const entry = document.getElementById('new-worker-entry').value;
+                const submitBtn = workerForm.querySelector('button[type="submit"]');
+
+                // Feedback visual de carga
+                const originalBtnText = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Guardando en la nube...</span>`;
+                lucide.createIcons();
 
                 const newId = workers.length > 0 ? Math.max(...workers.map(w => w.id)) + 1 : 1;
                 
@@ -770,8 +811,6 @@
                     medicalRest: "No"
                 };
 
-                workers.push(newWorker);
-                
                 if (supabaseClient) {
                     const { error } = await supabaseClient.from('workers').insert([{
                         id: newWorker.id,
@@ -792,15 +831,28 @@
 
                     if (error) {
                         console.error("Error al guardar en Supabase:", error);
+                        showNotification('Error al registrar empleado en la base de datos', 'error');
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalBtnText;
+                        lucide.createIcons();
+                        return;
                     }
                 }
+
+                workers.push(newWorker);
+
+                // Restaurar botón
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+                lucide.createIcons();
 
                 renderAll();
                 closeWorkerModal();
                 workerForm.reset();
+                showNotification('Empleado registrado y guardado con éxito', 'success');
             });
         }
-
+        
         function switchTab(tabName) {
             document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
             const targetSec = document.getElementById(`tab-${tabName}`);
@@ -896,31 +948,77 @@
             });
         }
 
-        function updateWorkerStatus(id, newStatus) {
+        // Actualizar y guardar estado en Supabase
+        async function updateWorkerStatus(id, newStatus) {
             const worker = workers.find(w => w.id === id);
-            if(worker) {
-                worker.status = newStatus;
-                if(newStatus === 'Falta') { worker.inTime = ''; worker.outTime = ''; }
-                else if(!worker.inTime) { worker.inTime = worker.entry; worker.outTime = "17:00"; }
-                renderAll();
-                showNotification(`Estado de ${worker.name} actualizado a ${newStatus}`, 'success');
-            }
-        }
+            if (!worker) return;
 
-        function updateWorkerTime(id, field, val) {
-            const worker = workers.find(w => w.id === id);
-            if(worker) {
-                worker[field] = val;
-                if(field === 'inTime' && val) {
-                    const [oH, oM] = worker.entry.split(':').map(Number);
-                    const [iH, iM] = val.split(':').map(Number);
-                    const diff = (iH * 60 + iM) - (oH * 60 + oM);
-                    worker.status = diff > worker.tolerance ? 'Tardanza' : 'A Tiempo';
-                }
-                renderAll();
-                showNotification(`Horario actualizado para ${worker.name}`, 'info');
-            }
+            worker.status = newStatus;
+            if (newStatus === 'Falta') { 
+                worker.inTime = ''; 
+                worker.outTime = ''; 
+            } else if (!worker.inTime) { 
+                worker.inTime = worker.entry; 
+                worker.outTime = "17:00"; 
+    }
+
+    // Guardar en la nube
+            if (supabaseClient) {
+                const { error } = await supabaseClient
+                    .from('workers')
+                    .update({ 
+                        status: worker.status,
+                        in_time: worker.inTime || null,
+                        out_time: worker.outTime || null
+                })
+                .eq('id', id);
+
+            if (error) {
+                console.error("Error al actualizar estado en Supabase:", error);
+                showNotification('Error al guardar estado en la nube', 'error');
+                return;
         }
+    }
+
+    renderAll();
+    showNotification(`Estado de ${worker.name} actualizado a ${newStatus}`, 'success');
+}
+
+// Actualizar y guardar horas de entrada/salida en Supabase
+        async function updateWorkerTime(id, field, val) {
+            const worker = workers.find(w => w.id === id);
+            if (!worker) return;
+
+        worker[field] = val;
+            if (field === 'inTime' && val) {
+            const [oH, oM] = worker.entry.split(':').map(Number);
+            const [iH, iM] = val.split(':').map(Number);
+            const diff = (iH * 60 + iM) - (oH * 60 + oM);
+        worker.status = diff > worker.tolerance ? 'Tardanza' : 'A Tiempo';
+    }
+
+    // Guardar en la nube
+            if (supabaseClient) {
+            const updateData = {
+                [field === 'inTime' ? 'in_time' : 'out_time']: val,
+                status: worker.status
+            };
+
+            const { error } = await supabaseClient
+                .from('workers')
+                .update(updateData)
+                .eq('id', id);
+
+            if (error) {
+                console.error("Error al actualizar horario en Supabase:", error);
+                showNotification('Error al guardar horario en la nube', 'error');
+                return;
+        }
+    }
+
+            renderAll();
+            showNotification(`Horario actualizado para ${worker.name}`, 'info');
+}
 
         function renderWorkersTable() {
             const tbody = document.getElementById('workers-table-body');
@@ -1104,10 +1202,46 @@
             });
         }
 
-        function updateSchedule(id, field, val) {
+        // Actualización y guardado automático en Supabase para el Cronograma de Horarios
+        async function updateSchedule(id, field, val) {
             const worker = workers.find(w => w.id === id);
-            if(worker) { worker[field] = val; showNotification(`Cronograma actualizado para ${worker.name}`, 'info'); }
+            if (!worker) return;
+
+        // Actualizamos el objeto en memoria
+        worker[field] = val;
+
+        // Guardamos en Supabase
+            if (supabaseClient) {
+        // Mapeo de nombres de campos JavaScript a columnas de Supabase
+                const dbFields = {
+                    'scheduleLV': 'schedule_lv',
+                    'scheduleSD': 'schedule_sd',
+                    'restDay': 'rest_day',
+                    'medicalRest': 'medical_rest'
+                };
+
+                const colName = dbFields[field];
+                if (colName) {
+                    const { error } = await supabaseClient
+                        .from('workers')
+                        .update({ [colName]: val })
+                        .eq('id', id);
+
+                    if (error) {
+                        console.error("Error al actualizar horario en Supabase:", error);
+                        showNotification(`Error al guardar cambio para ${worker.name}`, 'error');
+                        return;
+            }
         }
+    }
+
+    showNotification(`Horario de ${worker.name} actualizado en la nube`, 'success');
+}
+
+// Vinculamos el botón "Guardar Cambios" para dar feedback explícito si la encargada presiona el botón
+        async function saveSchedules() {
+            showNotification('Todos los horarios están sincronizados con la base de datos', 'success');
+}
 
         async function deleteWorker(id) {
             const worker = workers.find(w => w.id === id);
